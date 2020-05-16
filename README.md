@@ -1,8 +1,8 @@
-# ccal
+# ccal-gui
 - 中国农历的Go语言版本
 - 阳历时间范围　1600-3500
 
-### 使用方法
+### cli使用方法
 
 ```bash
 ./ccal -y 2032 -m 1 -d 1 -h 5 -sx 猴 -b=false

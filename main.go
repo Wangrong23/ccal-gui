@@ -2,12 +2,9 @@ package main
 
 import (
 	"fmt"
-<<<<<<< HEAD
 	"strconv"
 
 	"github.com/nongli/ccal"
-=======
->>>>>>> 843b3a181af51fc98d75edc8830b6a11e32615de
 
 	"github.com/andlabs/ui"
 )
@@ -49,12 +46,8 @@ func w() {
 
 }
 
-<<<<<<< HEAD
 //历法信息
 //生成输入信息控件
-=======
-//历法信息　含农历　阳历　干支
->>>>>>> 843b3a181af51fc98d75edc8830b6a11e32615de
 func Info(tab *ui.Tab, win *ui.Window) {
 	win.SetChild(tab)
 	win.SetMargined(true)
@@ -62,11 +55,7 @@ func Info(tab *ui.Tab, win *ui.Window) {
 	tab.SetMargined(0, true)
 }
 
-<<<<<<< HEAD
 //获取输入内容
-=======
-//显示基础功能
->>>>>>> 843b3a181af51fc98d75edc8830b6a11e32615de
 func TabBasicInfo() ui.Control {
 
 	hbox := ui.NewHorizontalBox() //创建水平框架
@@ -86,26 +75,18 @@ func TabBasicInfo() ui.Control {
 	day := ui.NewEntry()
 	hour := ui.NewEntry()
 	sx := ui.NewEntry() //生肖
-<<<<<<< HEAD
 	b := ui.NewEntry()  //闰月
-=======
->>>>>>> 843b3a181af51fc98d75edc8830b6a11e32615de
 	// 生成标签对应上面文本输入框
 	laby := ui.NewLabel(``)  //year
 	labm := ui.NewLabel(``)  //month
 	labd := ui.NewLabel(``)  //day
 	labh := ui.NewLabel(``)  //hour
 	labsx := ui.NewLabel(``) //生肖
-<<<<<<< HEAD
 	labb := ui.NewLabel(``)  //输入月份是否为闰月
 
 	// 生成按钮
 	button := ui.NewButton(`查看`)
 
-=======
-	// 生成按钮
-	button := ui.NewButton(`查看`)
->>>>>>> 843b3a181af51fc98d75edc8830b6a11e32615de
 	// 设置按钮点击事件
 	button.OnClicked(func(*ui.Button) {
 		//lab.SetText(year.Text() + month.Text() + day.Text() + hour.Text())//一次性获取全部输入内容
@@ -116,19 +97,14 @@ func TabBasicInfo() ui.Control {
 		labd.SetText(day.Text())
 		labh.SetText(hour.Text())
 		labsx.SetText(sx.Text())
-<<<<<<< HEAD
 		labb.SetText(b.Text())
 
 		//获取输入的内容
 		lsY := laby.Text()
-=======
-		lsY := laby.Text() //获取输入的内容　这里获取的是lab.SetTest()内容　输入多少获取多少
->>>>>>> 843b3a181af51fc98d75edc8830b6a11e32615de
 		lsM := labm.Text()
 		lsD := labd.Text()
 		lsH := labh.Text()
 		lsSx := labsx.Text()
-<<<<<<< HEAD
 		lsB := labb.Text()
 		fmt.Printf("lsY:%s lsM:%s lsD:%s lsH:%s lsSx:%s lsB:%s\n", lsY, lsM, lsD, lsH, lsSx, lsB) //打印到终端
 		//格式解析
@@ -146,10 +122,6 @@ func TabBasicInfo() ui.Control {
 
 		s, l, g, jq := ccal.Input(int(y), int(m), int(d), int(h), lsSx, b)
 		fmt.Printf("%v %v %v %v\n", s, l, g, jq)
-=======
-
-		fmt.Printf("lsY:%s lsM:%s lsD:%s lsH:%s lsSx:%s\n", lsY, lsM, lsD, lsH, lsSx) //打印到终端
->>>>>>> 843b3a181af51fc98d75edc8830b6a11e32615de
 	})
 
 	//添加到竖列Ｂox
@@ -158,11 +130,8 @@ func TabBasicInfo() ui.Control {
 	vbox.Append(day, false)
 	vbox.Append(hour, false)
 	vbox.Append(sx, false)
-<<<<<<< HEAD
 	vbox.Append(b, false)
 
-=======
->>>>>>> 843b3a181af51fc98d75edc8830b6a11e32615de
 	vbox.Append(laby, false)
 	vbox.Append(button, false)
 	//ui.NewVerticalSeparator 创建一个新的垂直分隔符。

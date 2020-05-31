@@ -25,7 +25,7 @@ func (f *TForm1) OnButton6Click(sender vcl.IObject) {
 		dmg := g.YearGan
 		dmz := g.YearZhi
 		infodmj := dimu.DimuInfo(dmg, dmz)
-		//fmt.Printf("%d %v-%v\n", y, dmg, dmz)
+
 		info := fmt.Sprintf("%s%s年地母经:\n%s\n", ganzhi.Gan[dmg], ganzhi.Zhi[dmz], infodmj)
 		vcl.ShowMessageFmt(info)
 	}

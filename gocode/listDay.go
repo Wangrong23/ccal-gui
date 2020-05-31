@@ -18,20 +18,14 @@ func (f *TForm1) OnButton3Click(sensor vcl.IObject) {
 	leapm := f.Edit6.Text()
 	sx := "猴"
 
-	if year == "" || month == "" || day == "" || hour == "" || sx == "" || leapm == "" {
-		fmt.Printf("输入相应信息\n")
-		f.Edit1.SetFocus()
-		f.Edit2.SetFocus()
-		f.Edit3.SetFocus()
-		f.Edit4.SetFocus()
-		//f.Edit5.SetFocus()
-		f.Edit6.SetFocus()
-		return
+	y, m, d, h, inputb := String2Int(year, month, day, hour)
+	mb, err := leapBool(leapm)
+	if err != nil {
+		s := fmt.Sprintf(err.Error())
+		vcl.ShowMessage(s)
 	}
-
-	if year != "" {
-
-		y, m, d, h, mb := convString2Int(year, month, day, hour, leapm)
+	switch inputb {
+	case true:
 		s, l, g, jq := ccal.Input(y, m, d, h, sx, mb)
 		iqs := zeji.ZhiSu(s, g)
 		x, days, _ := zeji.ListLunarDay(jq, l, iqs)
@@ -50,5 +44,7 @@ func (f *TForm1) OnButton3Click(sensor vcl.IObject) {
 				days[21] + days[22] + days[23] + days[24] + days[2] + days[26] + days[27] +
 				days[28] + days[29])
 		}
+	case false:
+		vcl.ShowMessage("数字输入错误\n")
 	}
 }

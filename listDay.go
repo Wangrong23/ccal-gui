@@ -18,7 +18,12 @@ func (f *TForm1) OnButton3Click(sensor vcl.IObject) {
 	leapm := f.Edit6.Text()
 	sx := "猴"
 
-	y, m, d, h, inputb := String2Int(year, month, day, hour)
+	y, m, d, h, inputb, err := String2Int(year, month, day, hour)
+	if err != nil {
+		s := fmt.Sprint(err)
+		vcl.ShowMessage(s)
+	}
+
 	mb, err := leapBool(leapm)
 	if err != nil {
 		s := fmt.Sprintf(err.Error())

@@ -13,18 +13,18 @@ var (
 )
 
 //字符串类型转int　返回值为真表示输入数字正常
-func String2Int(year, month, day, hour string) (y, m, d, h int, inputb bool) {
+func String2Int(year, month, day, hour string) (y, m, d, h int, inputb bool, err error) {
 	y, _ = strconv.Atoi(year)
 	m, _ = strconv.Atoi(month)
 	d, _ = strconv.Atoi(day)
 	h, _ = strconv.Atoi(hour)
-	inputb = dateBool(y, m, d, h)
+	inputb, err = dateBool(y, m, d, h)
 
 	return
 }
 
 //判断输入的数字
-func dateBool(year, month, day, hour int) (dateB bool) {
+func dateBool(year, month, day, hour int) (dateB bool, err error) {
 
 	if (year > 1600 && year < 3499) &&
 		(month >= 1 && month <= 12) &&
@@ -32,6 +32,7 @@ func dateBool(year, month, day, hour int) (dateB bool) {
 		(hour >= 1 && hour <= 12) {
 		dateB = true
 	} else {
+		err = errors.New("年份时间范围1600到3499")
 		dateB = false
 	}
 	return

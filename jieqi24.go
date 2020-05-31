@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/nongli/ccal"
 	"github.com/nongli/solar"
 	"github.com/ying32/govcl/vcl"
@@ -9,7 +11,11 @@ import (
 //24节气按钮　只需要年份数据即可
 func (f *TForm1) OnButton2Click(sender vcl.IObject) {
 	year := f.Edit1.Text()
-	y, m, d, h, inputb := String2Int(year, "1", "1", "1")
+	y, m, d, h, inputb, err := String2Int(year, "1", "1", "1")
+	if err != nil {
+		s := fmt.Sprint(err)
+		vcl.ShowMessage(s)
+	}
 
 	switch inputb {
 	case true:

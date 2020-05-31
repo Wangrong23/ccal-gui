@@ -20,7 +20,7 @@ func (f *TForm1) OnButton2Click(sender vcl.IObject) {
 	switch inputb {
 	case true:
 		_, _, _, jq := ccal.Input(y, m, d, h, "猴", false)
-		jq24 := solar.ShowJieqi24(jq.Jqt, jq.Jq11t)
+		jq24, _ := solar.ShowJieqi24(jq.Jqt, jq.Jq11t)
 
 		//信息显示到UI界面
 		vcl.ShowMessage(jq24[0] + jq24[1] + jq24[2] + jq24[3] + jq24[4] + jq24[5] + jq24[6] + jq24[7] + jq24[8] +

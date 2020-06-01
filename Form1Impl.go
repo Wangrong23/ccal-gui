@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/nongli/ccal"
+	"github.com/nongli/lunar"
 	_ "github.com/ying32/govcl/pkgs/winappres"
 	"github.com/ying32/govcl/vcl"
 	"github.com/ying32/govcl/vcl/types"
@@ -51,13 +52,16 @@ func (f *TForm1) OnButton1Click(object vcl.IObject) {
 
 		s, l, g, _ := ccal.Input(y, m, d, h, sx, mb)
 		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-阳历时间范围:%s\n", s.SYear, s.SMonth, s.SDay, s.SWeek, s.SHour)
-		lunarinfo := fmt.Sprintf("农历纪年: %d年-%d月(%s)-%d日-%d时(%s时) 本年是否有闰月:%t 闰%d月\n",
-			l.LYear, l.LMonth, l.LYdxs, l.LDay, l.LHour, l.LaliasHour, l.Leapmb, l.LeapMonth)
+		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %d时(%s时)\n本年是否有闰月:%t 闰%d月\n",
+			l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1], l.LHour, l.LaliasHour, l.Leapmb, l.LeapMonth)
 		gzinfo := fmt.Sprintf("干支纪年: %s%s年-%s月-%s%s日-%s时\n\n",
 			g.YearGanM, g.YearZhiM, g.MonthGanZhiM, g.DayGanM, g.DayZhiM, g.HourGanZhiM)
 
+		//杨公祭日
+		yginfo := yangGongJiRi(l.LMonth, l.LDay)
+
 		//信息显示到UI界面
-		vcl.ShowMessage(solarinfo + lunarinfo + gzinfo)
+		vcl.ShowMessage(solarinfo + lunarinfo + gzinfo + yginfo)
 	case false:
 		vcl.ShowMessage("数字输入错误\n")
 		//os.Exit(0)

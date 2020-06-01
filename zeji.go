@@ -6,6 +6,7 @@ import (
 
 	"github.com/nongli/ccal"
 	"github.com/nongli/ganzhi"
+	"github.com/nongli/lunar"
 	"github.com/nongli/solar"
 	"github.com/nongli/zeji"
 	"github.com/ying32/govcl/vcl"
@@ -41,8 +42,8 @@ func (f *TForm1) OnButton4Click(sender vcl.IObject) {
 
 		//纪年信息
 		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-阳历时间范围:%s\n", s.SYear, s.SMonth, s.SDay, s.SWeek, s.SHour)
-		lunarinfo := fmt.Sprintf("农历纪年: %d年-%d月(%s)-%d日-%d时(%s时) 本年是否有闰月:%t 闰%d月\n",
-			l.LYear, l.LMonth, l.LYdxs, l.LDay, l.LHour, l.LaliasHour, l.Leapmb, l.LeapMonth)
+		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %d时(%s时)\n本年是否有闰月:%t 闰%d月\n",
+			l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1], l.LHour, l.LaliasHour, l.Leapmb, l.LeapMonth)
 		gzinfo := fmt.Sprintf("干支纪年: %s%s年-%s月-%s%s日-%s时\n\n",
 			g.YearGanM, g.YearZhiM, g.MonthGanZhiM, g.DayGanM, g.DayZhiM, g.HourGanZhiM)
 

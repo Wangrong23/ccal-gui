@@ -24,8 +24,8 @@ func (f *TForm1) OnButton2Click(sender vcl.IObject) {
 
 		//信息显示到UI界面
 		vcl.ShowMessage(jq24[0] + jq24[1] + jq24[2] + jq24[3] + jq24[4] + jq24[5] + jq24[6] + jq24[7] + jq24[8] +
-			jq24[9] + jq24[10] + jq24[11] + jq24[12] + jq24[13] + jq24[14] + jq24[15] + jq24[15] + jq24[16] +
-			jq24[17] + jq24[18] + jq24[19] + jq24[20] + jq24[21] + jq24[22] + jq24[23] + jq24[24] + jq24[25] + jq24[26])
+			jq24[9] + jq24[10] + jq24[11] + jq24[12] + jq24[13] + jq24[14] + jq24[15] + jq24[16] + jq24[17] +
+			jq24[18] + jq24[19] + jq24[20] + jq24[21] + jq24[22] + jq24[23] + jq24[24] + jq24[25] + jq24[26])
 	case false:
 		vcl.ShowMessage("年份数字输入错误\n")
 	}

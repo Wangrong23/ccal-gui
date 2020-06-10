@@ -126,7 +126,7 @@ func QiSha(wn int) (s string) {
 		wn == 22 ||
 		wn == 23 ||
 		wn == 24 {
-		s = fmt.Sprintf("\"%s\"为七煞之一\n", zeji.XingSu28[wn])
+		s = fmt.Sprintf("\n\"%s\"为七煞之一\n", zeji.XingSu28[wn])
 	}
 	return
 }

@@ -9,7 +9,7 @@ import (
 
 	"github.com/nongli/ccal"
 	"github.com/nongli/lunar"
-	_ "github.com/ying32/govcl/pkgs/winappres"
+	//	_ "github.com/ying32/govcl/pkgs/winappres"
 	"github.com/ying32/govcl/vcl"
 	"github.com/ying32/govcl/vcl/types"
 	"github.com/ying32/govcl/vcl/types/keys"
@@ -80,8 +80,8 @@ func (f *TForm1) OnFormKeyPress(sender vcl.IObject, key *types.Char) {
 				f.Button4.Click() //择吉
 				f.Button6.Click() //地母经
 				f.Button5.Click() //关于
-				f.Button7.Click() //禁忌
-				f.Button8.Click() //其他
+				f.Button7.Click() //其他内容
+				f.Button8.Click() //显示当日
 			}
 		}()
 	}

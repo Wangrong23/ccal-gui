@@ -8,7 +8,7 @@ import (
 
 func main() {
 	vcl.Application.Initialize()
-	vcl.Application.CreateForm(&Form1)
+    vcl.Application.CreateForm(&Form1)
 	Form1.Show()
 	vcl.Application.Run()
 }

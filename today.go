@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/nongli/ccal"
@@ -9,6 +10,7 @@ import (
 	"github.com/nongli/lunar"
 	"github.com/nongli/solar"
 	"github.com/nongli/today"
+	"github.com/nongli/utils"
 	"github.com/nongli/zeji"
 	"github.com/ying32/govcl/vcl"
 )
@@ -18,7 +20,10 @@ var T = time.Now().Local()
 //自动显示阳历当日择吉内容
 func (f *TForm1) OnButton8Click(sender vcl.IObject) {
 
-	expectInfo := today.FindLunarMD()
+	expectInfo, err := today.FindLunarMD()
+	if err != nil {
+		log.Fatal("时间异常\n", err)
+	}
 
 	//润月
 	leapY := expectInfo.LeapY
@@ -32,10 +37,8 @@ func (f *TForm1) OnButton8Click(sender vcl.IObject) {
 	expectD := expectInfo.ExpectD
 	normalB := expectInfo.NormalB
 
-	h := T.Hour() / 2
-	if h < 1 {
-		h = 1
-	}
+	h24 := T.Hour()
+	h := utils.Conv24Hto12H(h24)
 	sx := "猴"
 
 	if leapM != 0 && leapB == true {

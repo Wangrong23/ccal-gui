@@ -5,10 +5,12 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/nongli/ccal"
 	"github.com/nongli/lunar"
+
 	//	_ "github.com/ying32/govcl/pkgs/winappres"
 	"github.com/ying32/govcl/vcl"
 	"github.com/ying32/govcl/vcl/types"
@@ -50,7 +52,10 @@ func (f *TForm1) OnButton1Click(object vcl.IObject) {
 			//os.Exit(0)
 		}
 
-		s, l, g, _ := ccal.Input(y, m, d, h, sx, mb)
+		err, s, l, g, _ := ccal.Input(y, m, d, h, sx, mb)
+		if err != nil {
+			log.Fatal(err)
+		}
 		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-阳历时间范围:%s\n", s.SYear, s.SMonth, s.SDay, s.SWeek, s.SHour)
 		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %d时(%s时)\n本年是否有闰月:%t 闰%d月\n",
 			l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1], l.LHour, l.LaliasHour, l.Leapmb, l.LeapMonth)

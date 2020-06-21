@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/nongli/ccal"
 	"github.com/nongli/solar"
@@ -19,7 +20,10 @@ func (f *TForm1) OnButton2Click(sender vcl.IObject) {
 
 	switch inputb {
 	case true:
-		_, _, _, jq := ccal.Input(y, m, d, h, "猴", false)
+		err, _, _, _, jq := ccal.Input(y, m, d, h, "猴", false)
+		if err != nil {
+			log.Fatal(err)
+		}
 		jq24, _ := solar.ShowJieqi24(jq.Jqt, jq.Jq11t)
 
 		//信息显示到UI界面

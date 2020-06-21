@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/nongli/ccal"
@@ -21,7 +22,10 @@ func (f *TForm1) OnButton6Click(sender vcl.IObject) {
 	if year != "" {
 		_y, _ := strconv.ParseInt(year, 10, 32)
 		y := int(_y)
-		_, _, g, _ := ccal.Input(y, 3, 1, 1, "猴", false) //这里月份要在立春之后
+		err, _, _, g, _ := ccal.Input(y, 3, 1, 1, "猴", false) //这里月份要在立春之后
+		if err != nil {
+			log.Fatal(err)
+		}
 		dmg := g.YearGan
 		dmz := g.YearZhi
 		infodmj := dimu.DimuInfo(dmg, dmz)

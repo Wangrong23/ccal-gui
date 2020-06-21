@@ -42,7 +42,10 @@ func (f *TForm1) OnButton8Click(sender vcl.IObject) {
 	sx := "猴"
 
 	if leapM != 0 && leapB == true {
-		s, l, g, jq := ccal.Input(leapY, leapM, expectLeapD, h, sx, leapB)
+		err, s, l, g, jq := ccal.Input(leapY, leapM, expectLeapD, h, sx, leapB)
+		if err != nil {
+			log.Fatal(err)
+		}
 		//纪年信息
 		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-阳历时间范围:%s\n", s.SYear, s.SMonth, s.SDay, s.SWeek, s.SHour)
 		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %d时(%s时)\n本年是否有闰月:%t 闰%d月\n",
@@ -105,7 +108,10 @@ func (f *TForm1) OnButton8Click(sender vcl.IObject) {
 		//信息显示到UI界面
 		vcl.ShowMessage(solarinfo + lunarinfo + gzinfo + winfo + zhisuInfo + isQiSha + number + name + result + jlr + listJg)
 	} else if normalM != 0 && normalB == false {
-		s, l, g, jq := ccal.Input(normalY, normalM, expectD, h, sx, normalB)
+		err, s, l, g, jq := ccal.Input(normalY, normalM, expectD, h, sx, normalB)
+		if err != nil {
+			log.Fatal(err)
+		}
 		//纪年信息
 		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-阳历时间范围:%s\n", s.SYear, s.SMonth, s.SDay, s.SWeek, s.SHour)
 		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %d时(%s时)\n本年是否有闰月:%t 闰%d月\n",

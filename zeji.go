@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/nongli/ccal"
@@ -38,7 +39,10 @@ func (f *TForm1) OnButton4Click(sender vcl.IObject) {
 			vcl.ShowMessageFmt("\"生肖\"输入错误，系統退出\n")
 			os.Exit(0)
 		}
-		s, l, g, jq := ccal.Input(y, m, d, h, sx, mb)
+		err, s, l, g, jq := ccal.Input(y, m, d, h, sx, mb)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		//纪年信息
 		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-阳历时间范围:%s\n", s.SYear, s.SMonth, s.SDay, s.SWeek, s.SHour)

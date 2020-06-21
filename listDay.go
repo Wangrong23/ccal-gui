@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/nongli/ccal"
 	"github.com/nongli/zeji"
@@ -31,7 +32,10 @@ func (f *TForm1) OnButton3Click(sensor vcl.IObject) {
 	}
 	switch inputb {
 	case true:
-		s, l, g, jq := ccal.Input(y, m, d, h, sx, mb)
+		err, s, l, g, jq := ccal.Input(y, m, d, h, sx, mb)
+		if err != nil {
+			log.Fatal(err)
+		}
 		iqs := zeji.ZhiSu(s, g)
 		x, days, _ := zeji.ListLunarDay(jq, l, iqs)
 

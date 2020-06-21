@@ -6,8 +6,8 @@
 
 ### 使用方法
 
-下载[Release](https://github.com/Aquarian-Age/ccal-gui/releases)下的可执行文件
-下载[lib](https://github.com/Aquarian-Age/ccal-gui/tree/master/lib)目录下的zip文件解压到和可执行文件同级目录即可
+- 下载[Release](https://github.com/Aquarian-Age/ccal-gui/releases)下的可执行文件
+- 下载[lib](https://github.com/Aquarian-Age/ccal-gui/tree/master/lib)目录下的zip文件并解压到和可执行文件同级目录
 
 ```text
 /path/ccal/v0.3.3

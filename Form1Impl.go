@@ -48,7 +48,7 @@ func (f *TForm1) OnButton1Click(object vcl.IObject) {
 	case true: //数字输入正确
 		//生肖判断
 		if sxt := shengxiao(sx); sxt == false {
-			vcl.ShowMessageFmt("生肖输入错误\n")
+			vcl.ShowMessageFmt("生肖输入错误")
 			//os.Exit(0)
 		}
 
@@ -68,7 +68,7 @@ func (f *TForm1) OnButton1Click(object vcl.IObject) {
 		//信息显示到UI界面
 		vcl.ShowMessage(solarinfo + lunarinfo + gzinfo + yginfo)
 	case false:
-		vcl.ShowMessage("数字输入错误\n")
+		vcl.ShowMessage("数字输入错误")
 		//os.Exit(0)
 	}
 }

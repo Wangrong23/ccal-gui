@@ -1,6 +1,6 @@
 package main
 
-func yangGongJiRi(m, d int) (info string) {
+func yg13(m, d int) (info string) {
 
 	if m == 1 && d == 13 {
 		info = "正月十三杨公忌日"

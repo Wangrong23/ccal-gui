@@ -21,6 +21,8 @@ import (
 type TForm1Fields struct {
 }
 
+var lm string
+
 //基础纪年信息
 func (f *TForm1) OnButton1Click(object vcl.IObject) {
 
@@ -56,14 +58,20 @@ func (f *TForm1) OnButton1Click(object vcl.IObject) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-阳历时间范围:%s\n", s.SYear, s.SMonth, s.SDay, s.SWeek, s.SHour)
-		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %d时(%s时)\n本年是否有闰月:%t 闰%d月\n",
-			l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1], l.LHour, l.LaliasHour, l.Leapmb, l.LeapMonth)
+		if l.Leapmb == true {
+			lm = "是"
+		} else {
+			lm = "否"
+		}
+
+		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-阳历时间:%d:%d\n", s.SYear, s.SMonth, s.SDay, s.SWeek, T.Hour(), T.Minute())
+		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %s时(%d时)\n本年是否有闰月:%s 闰%d月\n",
+			l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1], l.LaliasHour, l.LHour, lm, l.LeapMonth)
 		gzinfo := fmt.Sprintf("干支纪年: %s%s年-%s月-%s%s日-%s时\n\n",
 			g.YearGanM, g.YearZhiM, g.MonthGanZhiM, g.DayGanM, g.DayZhiM, g.HourGanZhiM)
 
 		//杨公祭日
-		yginfo := yangGongJiRi(l.LMonth, l.LDay)
+		yginfo := yg13(l.LMonth, l.LDay)
 
 		//信息显示到UI界面
 		vcl.ShowMessage(solarinfo + lunarinfo + gzinfo + yginfo)

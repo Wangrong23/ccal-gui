@@ -3,4 +3,6 @@
 
 - 业余爱好　水平有限　写的不怎么好看
 
+- 中国大陆用户下载地址:[freeSky](http://www.aquarianage.xyz:5212/#/s/AZTw)
+
 

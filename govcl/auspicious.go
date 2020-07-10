@@ -108,8 +108,11 @@ func (f *TForm1) OnButton4Click(sender vcl.IObject) {
 		//月份吉干列表
 		listJg := fmt.Sprintf("本月吉干列表:\n%s\n", jgs)
 
+		//奇門
+		qmdj := qm(s.SolarDayT, g, jq)
+
 		//信息显示到UI界面
-		vcl.ShowMessage(solarinfo + lunarinfo + gzinfo + winfo + zhisuInfo + isQiSha + number + name + result + jlr + listJg)
+		vcl.ShowMessage(solarinfo + lunarinfo + gzinfo + qmdj + winfo + zhisuInfo + isQiSha + number + name + result + jlr + listJg)
 	case false:
 		vcl.ShowMessage("数字输入错误，系统退出\n")
 		os.Exit(0)

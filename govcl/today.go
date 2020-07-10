@@ -110,8 +110,11 @@ func (f *TForm1) OnButton8Click(sender vcl.IObject) {
 		//月份吉干列表
 		listJg := fmt.Sprintf("本月吉干列表:\n%s\n", jgs)
 
+		//奇門
+		qmdj := qm(s.SolarDayT, g, jq)
+
 		//信息显示到UI界面
-		vcl.ShowMessage(solarinfo + lunarinfo + gzinfo + winfo + zhisuInfo + isQiSha + number + name + result + jlr + listJg)
+		vcl.ShowMessage(solarinfo + lunarinfo + gzinfo + qmdj + winfo + zhisuInfo + isQiSha + number + name + result + jlr + listJg)
 	} else if normalM != 0 && normalB == false {
 		err, s, l, g, jq := ccal.Input(normalY, normalM, expectD, h, sx, normalB)
 		if err != nil {
@@ -181,7 +184,10 @@ func (f *TForm1) OnButton8Click(sender vcl.IObject) {
 		//月份吉干列表
 		listJg := fmt.Sprintf("本月吉干列表:\n%s\n", jgs)
 
+		//奇門
+		qmdj := qm(s.SolarDayT, g, jq)
+
 		//信息显示到UI界面
-		vcl.ShowMessage(solarinfo + lunarinfo + gzinfo + winfo + zhisuInfo + isQiSha + number + name + result + jlr + listJg)
+		vcl.ShowMessage(solarinfo + lunarinfo + gzinfo + qmdj + winfo + zhisuInfo + isQiSha + number + name + result + jlr + listJg)
 	}
 }

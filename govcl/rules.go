@@ -32,7 +32,7 @@ func dateBool(year, month, day, hour int) (dateB bool, err error) {
 		(hour >= 1 && hour <= 12) {
 		dateB = true
 	} else {
-		err = errors.New("年份时间范围1600到3499")
+		err = errors.New("年份时间范围1601~3498")
 		dateB = false
 	}
 	return
@@ -55,7 +55,7 @@ func leapBool(leapm string) (lt bool, err error) {
 
 	if leapm != "yes" && leapm != "y" &&
 		leapm != "no" && leapm != "n" {
-		err = errors.New("闰月判断值输入错误软件自动关闭...")
+		err = errors.New("闰月判断值输入错误...")
 	}
 	return
 }

@@ -54,7 +54,7 @@ func (f *TForm1) OnButton1Click(object vcl.IObject) {
 			//os.Exit(0)
 		}
 
-		err, s, l, g, _ := ccal.Input(y, m, d, h, sx, mb)
+		err, s, l, g, jq := ccal.Input(y, m, d, h, sx, mb)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -73,8 +73,11 @@ func (f *TForm1) OnButton1Click(object vcl.IObject) {
 		//杨公祭日
 		yginfo := yg13(l.LMonth, l.LDay)
 
+		//奇門
+		qmdj := qm(s.SolarDayT, g, jq)
+
 		//信息显示到UI界面
-		vcl.ShowMessage(solarinfo + lunarinfo + gzinfo + yginfo)
+		vcl.ShowMessage(solarinfo + lunarinfo + gzinfo + yginfo + qmdj)
 	case false:
 		vcl.ShowMessage("数字输入错误")
 		//os.Exit(0)

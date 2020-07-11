@@ -3,6 +3,6 @@
 
 - 业余爱好　水平有限
 
-- 中国大陆用户下载地址:[freeSky](http://www.aquarianage.xyz:5212/#/s/AZTw)
+- 中国大陆用户下载地址:[freeSky](http://106.54.42.253:5212/#/s/AZTw?path=%2F)
 
 

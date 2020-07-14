@@ -331,10 +331,10 @@ func aus(y, m, d, h int, sx string, inputb, mb bool) (Text string) {
 
 		//值宿信息
 		iqs := zeji.ZhiSu(s, g)
-		ws := iqs.Ws //值宿名称
-		wn := iqs.Wn //值宿当日周几　0为周日
+		ws := iqs.StarNames //值宿名称
+		wn := iqs.Week      //值宿当日周几　0为周日
 		winfo := fmt.Sprintf("周%s 值宿:\"%s\"\n", solar.Zhou[wn], ws)
-		zhisuInfo := fmt.Sprintf(iqs.ZhiSuInfo) //当日值宿信息
+		zhisuInfo := fmt.Sprintf(iqs.ZhiSu) //当日值宿信息
 
 		//判断当日是否为七煞日
 		qsB := iqs.IsQiSha(s.SolarDayT, g.DayZhiM)
@@ -436,10 +436,10 @@ func day() (Text string) {
 
 		//值宿信息
 		iqs := zeji.ZhiSu(s, g)
-		ws := iqs.Ws //值宿名称
-		wn := iqs.Wn //值宿当日周几　0为周日
+		ws := iqs.StarNames //值宿名称
+		wn := iqs.Week      //值宿当日周几　0为周日
 		winfo := fmt.Sprintf("周%s 值宿:\"%s\"\n", solar.Zhou[wn], ws)
-		zhisuInfo := fmt.Sprintf(iqs.ZhiSuInfo) //当日值宿信息
+		zhisuInfo := fmt.Sprintf(iqs.ZhiSu) //当日值宿信息
 
 		//判断当日是否为七煞日
 		qsB := iqs.IsQiSha(s.SolarDayT, g.DayZhiM)
@@ -510,10 +510,10 @@ func day() (Text string) {
 
 		//值宿信息
 		iqs := zeji.ZhiSu(s, g)
-		ws := iqs.Ws //值宿名称
-		wn := iqs.Wn //值宿当日周几　0为周日
+		ws := iqs.StarNames //值宿名称
+		wn := iqs.Week      //值宿当日周几　0为周日
 		winfo := fmt.Sprintf("周%s 值宿:\"%s\"\n", solar.Zhou[wn], ws)
-		zhisuInfo := fmt.Sprintf(iqs.ZhiSuInfo) //当日值宿信息
+		zhisuInfo := fmt.Sprintf(iqs.ZhiSu) //当日值宿信息
 
 		//判断当日是否为七煞日
 		qsB := iqs.IsQiSha(s.SolarDayT, g.DayZhiM)

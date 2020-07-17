@@ -218,6 +218,7 @@ func run() {
 		select {
 		case e := <-dui.Inputs:
 			dui.Input(e)
+			//fmt.Printf("\tmain: %v\n", e)
 
 		case warn, ok := <-dui.Error:
 			if !ok {
@@ -394,11 +395,10 @@ func aus(y, m, d, h int, sx string, inputb, mb bool) (Text string) {
 
 //自动显示阳历当日择吉内容
 func day() (Text string) {
-
 	expectInfo, err := today.FindLunarMD()
 	if err != nil {
-		//log.Fatal("时间异常\n", err)
-		Text = fmt.Sprintf("时间异常:%v", err)
+		log.Fatal("时间异常\n", err)
+		//Text = fmt.Sprintf("时间异常:%v", err)
 	}
 
 	//润月

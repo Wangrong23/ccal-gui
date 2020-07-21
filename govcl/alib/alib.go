@@ -12,6 +12,6 @@ func init() {
 		libname.LibName = "/usr/local/lib/govcl/liblcl.so"
 	}
 	if os == "windows" {
-		libname.LibName = "C:\\ccal-dll"
+		libname.LibName = "C:\\govcl"
 	}
 }

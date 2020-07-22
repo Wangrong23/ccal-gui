@@ -9,3 +9,5 @@ require (
 )
 
 replace github.com/nongli => /home/xuan/src/ccal-cli/
+
+//replace github.com/ying32/dylib => /home/xuan/src/govcl/vendor/github.com/ying32/dylib

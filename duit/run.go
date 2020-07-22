@@ -237,7 +237,7 @@ func qm(st time.Time, g *ccal.LunarGanZhiInfo, jq *ccal.JieQiInfo) (Text string)
 
 	fz := qimen.FuTouZhi(g.DayZhi, offg)
 	//fmt.Printf("符頭天干數字:%d 符頭地支數字:%d\n", fg, fz)
-	fmt.Printf("符頭:%s%s\n", ganzhi.Gan[fg], ganzhi.Zhi[fz])
+	f符头 := fmt.Sprintf("符頭:%s%s\n", ganzhi.Gan[fg], ganzhi.Zhi[fz])
 
 	yuan := qimen.FuTouYuan(fg, fz)
 	jqt := qimen.AllJqt(jq.Jqt, jq.Jq11t)
@@ -254,11 +254,16 @@ func qm(st time.Time, g *ccal.LunarGanZhiInfo, jq *ccal.JieQiInfo) (Text string)
 	saninfo := bginfo.DingJiu(jie, yuan)
 	//fmt.Printf("三元信息:%v\n", saninfo)
 	//精確的節氣時間
-	jieInfo := qimen.J24H(st.Year(), jie)
+	jieInfo, _ := qimen.J24H(st.Year(), jie)
 
 	ju := saninfo.DingJu(yuan)
-	info := fmt.Sprintf("拆補定局: %s %s 第%d天 %s遁%d局\n\n", jie, yuan, offg+1, bginfo.YinYang, ju)
-	Text = jieInfo + info
+	info := fmt.Sprintf("拆補定局: %s %s 第%d天 %s遁%d局\n", jie, yuan, offg+1, bginfo.YinYang, ju)
+
+	//旬首
+	旬首 := qimen.X旬首(g.HourGanZhiM)
+	x旬首 := fmt.Sprintf("旬首:%s\n\n", 旬首)
+
+	Text = jieInfo + info + f符头 + x旬首
 	return
 }
 

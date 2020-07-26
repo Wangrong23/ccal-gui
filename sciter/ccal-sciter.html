@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8"> 
+        <TItle>七元禽星</TItle>
+    </head>
+    <body>
+        <!--输入年-->
+        <h1>七元禽星古本</h1>
+        <input |text #year></input>
+
+        <!-- 按钮 -->
+        <button #btny>确定</button>
+
+        <script type="text/tiscript">
+            //另一种方式w.DefineFunction取UI输入的信息
+            event click $(#btny){
+            // view.yearinfo($(#year).value)//传递输入信息到Go
+            var inputGet = view.yearinfo($(#year).value)//Go处理之后的结果
+
+            //显示输入的内容
+            $(#输入信息).value= $(#year).value
+                
+            //Go处理之后的返回值显示到#getting的地方
+            $(#getting).value=inputGet
+            }
+        </script>
+
+        <!-- 指定信息显示位置 -->
+        <h4 #输入信息></h4>
+        <p #getting></p>
+
+        <!-- 阳历日历 -->
+        <h4>阳历日历</h4>
+        <input type="date"></input>
+        <!-- <button #scal></button>
+        <script type="text/tisctipt">
+        event click $(#scal){
+            today()
+        } 
+        </script>-->
+
+    </body>
+</html>

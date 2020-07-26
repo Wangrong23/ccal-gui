@@ -261,9 +261,16 @@ func qm(st time.Time, g *ccal.LunarGanZhiInfo, jq *ccal.JieQiInfo) (Text string)
 
 	//旬首
 	旬首 := qimen.X旬首(g.HourGanZhiM)
-	x旬首 := fmt.Sprintf("旬首:%s\n\n", 旬首)
+	x旬首 := fmt.Sprintf("旬首:%s\n", 旬首)
 
-	Text = jieInfo + info + f符头 + x旬首
+	//值符
+	//newStarmap := qimen.Z值符定星(旬首, g.HourGanZhiM, ju)
+	newStarmap := qimen.Zf阴遁六甲星数字(旬首, g.HourGanZhiM, ju)
+	n, _ := qimen.Zf时辰寻甲(g.HourGanZhiM)
+	值符 := qimen.ZF(newStarmap, n)
+	zhifu := fmt.Sprintf("值符:%s\n\n", 值符)
+
+	Text = jieInfo + info + f符头 + x旬首 + zhifu
 	return
 }
 

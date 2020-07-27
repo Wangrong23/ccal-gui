@@ -50,7 +50,7 @@ func runMain() {
 			h := infos.H
 			b := infos.B
 			//日期信息
-			err, _, l, g, _ := ccal.Input(y, m, d, h, sx, b)
+			err, s, l, g, jq := ccal.Input(y, m, d, h, sx, b)
 			if err != nil {
 				log.Fatal("ccal:", err)
 			}
@@ -113,7 +113,7 @@ func runMain() {
 				info用兵吉日 string
 				info十恶大败 string
 				info攻取吉日 string
-				info天德   string
+				info天败凶日 string
 			)
 
 			jx := 禽.NewJX吉凶日()
@@ -160,19 +160,16 @@ func runMain() {
 			if gqb == true {
 				info攻取吉日 = fmt.Sprintf("%s\n", 攻取吉日)
 			}
-
-			///有待验证
-			tdb, 天德 := jx.Jx天德er("亥")
-			if tdb == true {
-				info天德 = fmt.Sprintf("%s\n", 天德)
+			//天败凶日
+			tbb, 天败凶日 := jx.Jx天败凶日er(s.SolarDayT, jq.Jqt, dz)
+			if tbb == true {
+				info天败凶日 = fmt.Sprintf("%s\n", 天败凶日)
 			}
-
 			//UI显示
 			status.Text = 纪年 + info元 + info年禽 + info月禽 + info日禽 + info时禽 +
 				info十二宫 + info日禽十二宫 +
 				info出师吉凶 + info干克支 + info伐日 + info猖鬼败亡 + info八专 + info五不归 + info八绝日 +
-				info用兵吉日 + info十恶大败 + info攻取吉日 +
-				info天德
+				info用兵吉日 + info十恶大败 + info攻取吉日 + info天败凶日
 			dui.MarkLayout(status)
 			return
 		},

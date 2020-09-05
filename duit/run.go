@@ -10,16 +10,18 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Aquarian-Age/ts"
 	"github.com/mjl-/duit"
 	"github.com/nongli/ccal"
 	"github.com/nongli/dimu"
 	"github.com/nongli/ganzhi"
 	"github.com/nongli/lunar"
-	"github.com/nongli/qimen"
 	"github.com/nongli/solar"
 	"github.com/nongli/today"
 	"github.com/nongli/utils"
 	"github.com/nongli/zeji"
+	"github.com/qxqm/禽"
+	"github.com/sjqm"
 )
 
 var (
@@ -31,7 +33,7 @@ var (
 	Lh     = &duit.Field{} //时辰
 	Lsx    = &duit.Field{} //生肖
 	Lmb    = &duit.Field{} //闰月
-	aliasM string          //别名
+	aliasM string          //是否闰月别名
 	//生肖
 	aliasshu, aliasniu, aliashu, aliastu, aliaslong, aliasshe string
 	aliasma, aliasyang, aliashou, aliasji, aliasgou, aliaszhu string
@@ -121,7 +123,7 @@ func run() {
 			return
 		},
 	}
-
+	//今日信息
 	todayInfo := &duit.Button{
 		Text: "今日信息",
 		Click: func() (e duit.Event) {
@@ -131,7 +133,7 @@ func run() {
 			return
 		},
 	}
-
+	//二十四节气列表
 	j24Info := &duit.Button{
 		Text: "二十四节气",
 		Click: func() (e duit.Event) {
@@ -146,7 +148,7 @@ func run() {
 			return
 		},
 	}
-
+	//农历月历表
 	listDayInfo := &duit.Button{
 		Text: "农历月历表",
 		Click: func() (e duit.Event) {
@@ -172,7 +174,34 @@ func run() {
 			return
 		},
 	}
+	//通书日时择吉
+	tongShu := &duit.Button{
+		Text: "通书日时择吉",
+		Click: func() (e duit.Event) {
+			year := Ly.Text //string类型
+			month := Lm.Text
+			day := Ld.Text
+			hour := Lh.Text
+			sx := Lsx.Text
+			leapm := Lmb.Text
 
+			y, m, d, h, inputb, err := String2Int(year, month, day, hour)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			mb, err := leapBool(leapm)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			info := tongShuZJ(y, m, d, h, sx, inputb, mb)
+			status.Text = info
+			dui.MarkLayout(status)
+			return
+		},
+	}
+	//主界面
 	dui.Top.UI = &duit.Box{
 		Width:   870,
 		Padding: duit.SpaceXY(6, 4),
@@ -207,6 +236,7 @@ func run() {
 			todayInfo,   //今日信息
 			j24Info,     //二十四节气
 			listDayInfo, //月历表
+			tongShu,     //通书日时择吉
 		),
 	}
 	//第一次绘制整个用户界面
@@ -229,48 +259,206 @@ func run() {
 	}
 }
 
-//時家奇門(拆補法)
-func qm(st time.Time, g *ccal.LunarGanZhiInfo, jq *ccal.JieQiInfo) (Text string) {
+//通书日时择吉
+func tongShuZJ(y, m, d, h int, sx string, inputb, mb bool) (Text string) {
+	switch inputb {
+	case true:
+		err, s, l, g, _ := ccal.Input(y, m, d, h, sx, mb)
+		if err != nil {
+			Text = fmt.Sprintf("%v\n", err)
+		}
 
-	fg, offg := qimen.FuTouGan(g.DayGan)
-	//fmt.Printf("當日天幹數字和符頭天干的差值:%d\n", offg)
+		if l.Leapmb == true {
+			aliasM = "是"
+		} else {
+			aliasM = "否"
+		}
+		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-当前时间:%d:%d\n",
+			s.SYear, s.SMonth, s.SDay, s.SWeek, T.Hour(), T.Minute())
+		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %s时(%d时)\n本年是否有闰月:%s 闰%d月\n",
+			l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1],
+			l.LaliasHour, l.LHour, aliasM, l.LeapMonth)
+		gzinfo := fmt.Sprintf("干支纪年: %s%s年-%s月-%s%s日-%s时\n\n",
+			g.YearGanM, g.YearZhiM, g.MonthGanZhiM, g.DayGanM, g.DayZhiM, g.HourGanZhiM)
 
-	fz := qimen.FuTouZhi(g.DayZhi, offg)
-	//fmt.Printf("符頭天干數字:%d 符頭地支數字:%d\n", fg, fz)
-	f符头 := fmt.Sprintf("符頭:%s%s\n", ganzhi.Gan[fg], ganzhi.Zhi[fz])
+		solarT := time.Date(s.SYear, time.Month(s.SMonth), s.SDay, s.SHour, 0, 0, 0, time.UTC)
 
-	yuan := qimen.FuTouYuan(fg, fz)
-	jqt := qimen.AllJqt(jq.Jqt, jq.Jq11t)
-	jmc := qimen.FestivalName(st, jqt)
-	//fmt.Println("當日爲", jmc, yuan)
+		/////////////十二建除
+		lunarM := lunar.Ymc[l.LMonth-1]                  //农历月名称
+		dgz := fmt.Sprintf("%s%s", g.DayGanM, g.DayZhiM) //日干支
+		var rjc, jc string                               //日建除
+		switch mb {
+		case true: //闰月月份
+			lunarLM := lunar.Ymc[l.LeapMonth-1] //农历月名称
+			fmt.Printf("农历月:%s\n", lunarLM)
+			yjc := ts.JC本月建除(lunarLM)
+			ldgz := fmt.Sprintf("%s%s", g.DayGanM, g.DayZhiM) //日干支
+			rjc = ts.JC本日建除(ldgz, yjc)
+			jc = fmt.Sprintf("%s日:十二建除: %s\n", dgz, rjc)
+		case false: //非闰月月份
+			yjc := ts.JC本月建除(lunarM)
+			rjc = ts.JC本日建除(dgz, yjc)
+			jc = fmt.Sprintf("%s日:十二建除: %s\n", dgz, rjc)
+		}
 
-	bginfo, err := qimen.BaGongInfo(jmc)
-	if err != nil {
-		log.Fatal(err)
+		/////////////////////择日要览
+		jqt := ts.JQT(y) //节气
+		//输入农历对应的阳历时间
+
+		ymc := ts.ZRYL月名称(lunarM)
+
+		月将 := ts.ZRYL月将(solarT, jqt) //按节气划分月将
+		yuejiang := fmt.Sprintf("月将: %s\n", 月将.Name)
+
+		//本月吉凶日
+		rjx := ymc.ZRYL本月吉凶日()
+		yjx := fmt.Sprintf("本月吉日:\n\t天赦日:%s\n\t母仓日:%s\n\t天德合日:%s\n\t月恩日:%s\n"+
+			"本月凶日:\n\t杨公忌:%s\n\t瘟星:%s\n\t天地凶败:%s\n\t天乙绝气:%s\n"+
+			"\t长短星:%s\n\t赤口:%s\n\t天休废:%s\n"+
+			"\t大空亡:%s\n\t小空亡:%s\n\t四方耗:%s\n",
+			rjx.TianShe, rjx.MuCang, rjx.TianDeHe, rjx.YueEn,
+			rjx.YangGongJi, rjx.WengXing, rjx.TianDiXiongBai, rjx.TianYiJueQi,
+			rjx.ChangDuanXing, rjx.ChiKou, rjx.TianXiuFei,
+			rjx.DaKongWang, rjx.XiaoKongWang, rjx.SiFangHao)
+
+		//日吉凶信息
+		lsjz := ymc.ZRYL今日干支信息(dgz)
+		brjx := fmt.Sprintf("本日干支:%s\n纳音属性:%s\n十二建除:%s\n黃道:%s\n黑道:%s\n",
+			lsjz.Name, lsjz.NaYin, lsjz.JianChu, lsjz.HuangDao, lsjz.HeiDao)
+
+		//接口实现　日吉凶信息
+		//ts.ZRYL今日干支信息(lunarM, dgz)
+
+		////////////////日时总览
+		//天赦日
+		var tiansheri string
+		jcb := ts.Is开日(rjc, "")
+		天赦日 := ts.RSZL天赦日(l.LYear, solarT, lunarM, dgz, jcb)
+		if 天赦日 != "" {
+			tiansheri = fmt.Sprintf("%s\n", 天赦日)
+		}
+
+		////////////////择时要览
+
+		//显示到gui界面
+		Text = solarinfo + lunarinfo + gzinfo + jc + yuejiang + yjx + brjx + tiansheri
+	case false:
+		Text = fmt.Sprintf("数字输入错\n")
+		os.Exit(1)
 	}
-	//fmt.Printf("節氣對應的八宫信息:%v\n", bginfo)
+	return
+}
 
-	jie := qimen.ConvJie(jmc, solar.JMC)
-	saninfo := bginfo.DingJiu(jie, yuan)
-	//fmt.Printf("三元信息:%v\n", saninfo)
-	//精確的節氣時間
-	jieInfo, _ := qimen.J24H(st.Year(), jie)
+//时家奇门
+func qminfo(l *ccal.LunarInfo, g *ccal.LunarGanZhiInfo, s *ccal.SolarInfo) (Text string) {
+	jqt := sjqm.JQT(l.LYear)
+	jq := sjqm.Jq节气名称(jqt)
+	_, dzt := jq.Jq冬至()
+	_, xzt := jq.Jq夏至()
 
-	ju := saninfo.DingJu(yuan)
-	info := fmt.Sprintf("拆補定局: %s %s 第%d天 %s遁%d局\n", jie, yuan, offg+1, bginfo.YinYang, ju)
+	xt := s.SHour //9 //xt:当前时间　需要把农历时间转换为当前时间
+	now := time.Date(s.SolarDayT.Year(), s.SolarDayT.Month(), s.SolarDayT.Day(), xt, 0, 0, 0, time.Local)
+	yy := sjqm.YY阴阳判断(now, dzt, xzt)
 
-	//旬首
-	旬首 := qimen.X旬首(g.HourGanZhiM)
-	x旬首 := fmt.Sprintf("旬首:%s\n", 旬首)
+	jmc := sjqm.Jqt当前节气(now, jqt)
+	//fmt.Printf("当前节气名称:%s\n", jmc)
+	yuan, _ := sjqm.FY符头三元(g.DayGan, g.DayZhi)
+	//fmt.Printf("%s遁 %s %s 第%d天\n", yy, yuan, jmc, 第几天)
 
-	//值符
-	//newStarmap := qimen.Z值符定星(旬首, g.HourGanZhiM, ju)
-	newStarmap := qimen.Zf阴遁六甲星数字(旬首, g.HourGanZhiM, ju)
-	n, _ := qimen.Zf时辰寻甲(g.HourGanZhiM)
-	值符 := qimen.ZF(newStarmap, n)
-	zhifu := fmt.Sprintf("值符:%s\n\n", 值符)
+	////
+	syinfo := sjqm.NewSY()
+	syinfo.DS大暑(jmc, yuan)
+	_, number, _ := syinfo.J局信息(jmc, yuan)
+	//fmt.Printf("节气名称:%s 局数字:%d 八宫数字:%d\n", name, number, bgn)
+	infos := fmt.Sprintf("节气:%s %s遁 %s %d局\n", jmc, yy, yuan, number)
 
-	Text = jieInfo + info + f符头 + x旬首 + zhifu
+	///旬首
+	xunshou := sjqm.XS旬首(g.HourGanZhiM)
+	旬首 := fmt.Sprintf("旬首:%s\n", xunshou)
+	////三奇六仪
+	sqly := sjqm.New三奇六仪(yy, number)
+	////值符数字
+	_, 旬首数字 := sjqm.ZF数字(xunshou, sqly)
+	//fmt.Printf("旬首名称:%s 旬首数字:%d\n", name, 旬首数字)
+
+	////值符　八门
+	bginfo := sjqm.NewBG()
+	info := bginfo.Zf值符(旬首数字)
+	zhifu := fmt.Sprintf("值符:%s 八门:%s\n", info.StarName, info.EightDoors)
+
+	//---------------------七元禽星吉凶---------------------
+	dg := g.DayGanM                    //日干
+	dz := g.DayZhiM                    //日支
+	dgz := fmt.Sprintf("%s%s", dg, dz) //日干支
+	//特殊吉凶日
+	var (
+		info出师吉凶 string
+		info干克支  string
+		info伐日   string
+		info猖鬼败亡 string
+		info八专   string
+		info五不归  string
+		info八绝日  string
+		info用兵吉日 string
+		info十恶大败 string
+		info攻取吉日 string
+		info天败凶日 string
+	)
+
+	jx := 禽.NewQXQM特殊日吉凶(dgz)
+	chushib, isgood := jx.QXQM出師吉日(dgz)
+	if chushib == true {
+		info出师吉凶 = fmt.Sprintf("%s\n", isgood)
+	}
+	gkzb, 干克支 := jx.QXQM干克支日(dgz)
+	if gkzb == true {
+		info干克支 = fmt.Sprintf("%s\n", 干克支)
+	}
+	farib, 支克干 := jx.QXQM伐日(dgz)
+	if farib == true {
+		info伐日 = fmt.Sprintf("%s\n", 支克干)
+	}
+	changguib, 猖鬼 := jx.QXQM猖鬼败亡日(dgz)
+	if changguib == true {
+		info猖鬼败亡 = fmt.Sprintf("%s\n", 猖鬼)
+	}
+	bazhuanb, 八专 := jx.QXQM八专日(dgz)
+	if bazhuanb == true {
+		info八专 = fmt.Sprintf("%s\n", 八专)
+	}
+	wubuguib, 五不归 := jx.QXQM五不归日(dgz)
+	if wubuguib == true {
+		info五不归 = fmt.Sprintf("%s\n", 五不归)
+	}
+	bajuerib, 八绝日 := jx.QXQM八绝日(dgz)
+	if bajuerib == true {
+		info八绝日 = fmt.Sprintf("%s\n", 八绝日)
+	}
+	yongb, 用兵吉日 := jx.QXQM用兵吉日(lunar.Rmc[l.LDay-1])
+	if yongb == true {
+		info用兵吉日 = fmt.Sprintf("%s\n", 用兵吉日)
+	}
+	//十恶大败
+	yg := g.YearGanM
+	seb, 十恶大败 := jx.QXQM十恶大败日(yg, lunar.Ymc[l.LMonth-1], dgz)
+	if seb == true {
+		info十恶大败 = fmt.Sprintf("%s\n", 十恶大败)
+	} else if seb == false {
+		info十恶大败 = fmt.Sprintf("%s\n", 十恶大败)
+	}
+	gqb, 攻取吉日 := jx.QXQM攻取吉日(dgz, farib, bazhuanb, changguib, wubuguib, seb, bajuerib)
+	if gqb == true {
+		info攻取吉日 = fmt.Sprintf("%s\n", 攻取吉日)
+	}
+	//天败凶日
+	tbb, 天败凶日 := jx.QXQM天败凶日(s.SolarDayT, jqt, dz)
+	if tbb == true {
+		info天败凶日 = fmt.Sprintf("%s\n", 天败凶日)
+	}
+
+	Text = infos + 旬首 + zhifu +
+		info出师吉凶 + info干克支 + info伐日 + info猖鬼败亡 + info八专 + info五不归 + info八绝日 +
+		info用兵吉日 + info十恶大败 + info攻取吉日 + info天败凶日
 	return
 }
 
@@ -283,7 +471,7 @@ func ymd(y, m, d, h int, sx string, inputb, mb bool) (Text string) {
 			Text = fmt.Sprintf("生肖输入错误\n")
 		}
 
-		err, s, l, g, jq := ccal.Input(y, m, d, h, sx, mb)
+		err, s, l, g, _ := ccal.Input(y, m, d, h, sx, mb)
 		if err != nil {
 			//log.Fatal(err)
 			Text = fmt.Sprintf("%v\n", err)
@@ -294,7 +482,7 @@ func ymd(y, m, d, h int, sx string, inputb, mb bool) (Text string) {
 		} else {
 			aliasM = "否"
 		}
-		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-阳历时间:%d:%d\n", s.SYear, s.SMonth, s.SDay, s.SWeek, T.Hour(), T.Minute())
+		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-当前时间:%d:%d\n", s.SYear, s.SMonth, s.SDay, s.SWeek, T.Hour(), T.Minute())
 		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %s时(%d时)\n本年是否有闰月:%s 闰%d月\n",
 			l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1], l.LaliasHour, l.LHour, aliasM, l.LeapMonth)
 		gzinfo := fmt.Sprintf("干支纪年: %s%s年-%s月-%s%s日-%s时\n\n",
@@ -304,7 +492,8 @@ func ymd(y, m, d, h int, sx string, inputb, mb bool) (Text string) {
 		yginfo := yg13(l.LMonth, l.LDay)
 
 		//奇門
-		qmdj := qm(s.SolarDayT, g, jq)
+		qmdj := qminfo(l, g, s)
+		//qmdj := qm(s.SolarDayT, g, jq, l, s)
 
 		Text = solarinfo + lunarinfo + gzinfo + yginfo + qmdj
 	case false:
@@ -335,7 +524,7 @@ func aus(y, m, d, h int, sx string, inputb, mb bool) (Text string) {
 			aliasM = "否"
 		}
 		//纪年信息
-		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-阳历时间 %d:%d\n",
+		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-当前时间 %d:%d\n",
 			s.SYear, s.SMonth, s.SDay, s.SWeek, T.Hour(), T.Minute())
 		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %s时(%d时)\n本年是否有闰月: %s-->闰%d月\n",
 			l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1], l.LaliasHour, l.LHour, aliasM, l.LeapMonth)
@@ -395,7 +584,8 @@ func aus(y, m, d, h int, sx string, inputb, mb bool) (Text string) {
 		listJg := fmt.Sprintf("本月吉干列表:\n%s\n", jgs)
 
 		//奇門
-		qmdj := qm(s.SolarDayT, g, jq)
+		qmdj := qminfo(l, g, s)
+		//qmdj := qm(s.SolarDayT, g, jq, l, s)
 		//信息显示到UI界面
 		Text = (solarinfo + lunarinfo + gzinfo + qmdj + winfo + zhisuInfo + isQiSha + number + name + result + jlr + listJg)
 	case false:
@@ -440,7 +630,7 @@ func day() (Text string) {
 			aliasM = "否"
 		}
 		//纪年信息
-		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-阳历时间 %d:%d\n", s.SYear, s.SMonth, s.SDay, s.SWeek, T.Hour(), T.Minute())
+		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-当前时间 %d:%d\n", s.SYear, s.SMonth, s.SDay, s.SWeek, T.Hour(), T.Minute())
 		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %s时(%d时)\n本年是否有闰月: %s-->闰%d月\n",
 			l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1], l.LaliasHour, l.LHour, aliasM, l.LeapMonth)
 		gzinfo := fmt.Sprintf("干支纪年: %s%s年-%s月-%s%s日-%s时\n\n",
@@ -499,7 +689,8 @@ func day() (Text string) {
 		listJg := fmt.Sprintf("本月吉干列表:\n%s\n", jgs)
 
 		//奇門
-		qmdj := qm(s.SolarDayT, g, jq)
+		qmdj := qminfo(l, g, s)
+		//qmdj := qm(s.SolarDayT, g, jq, l, s)
 		//信息显示到UI界面
 		Text = (solarinfo + lunarinfo + gzinfo + qmdj + winfo + zhisuInfo + isQiSha + number + name + result + jlr + listJg)
 
@@ -514,7 +705,7 @@ func day() (Text string) {
 			aliasM = "否"
 		}
 		//纪年信息
-		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-阳历时间 %d:%d\n", s.SYear, s.SMonth, s.SDay, s.SWeek, T.Hour(), T.Minute())
+		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-当前时间 %d:%d\n", s.SYear, s.SMonth, s.SDay, s.SWeek, T.Hour(), T.Minute())
 		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %s时(%d时)\n本年是否有闰月: %s-->闰%d月\n",
 			l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1], l.LaliasHour, l.LHour, aliasM, l.LeapMonth)
 		gzinfo := fmt.Sprintf("干支纪年: %s%s年-%s月-%s%s日-%s时\n\n",
@@ -570,10 +761,11 @@ func day() (Text string) {
 		}
 
 		//月份吉干列表
-		listJg := fmt.Sprintf("本月吉干列表:\n%s\n", jgs)
+		listJg := fmt.Sprintf("本月吉干日期:\n%s\n", jgs)
 
 		//奇門
-		qmdj := qm(s.SolarDayT, g, jq)
+		qmdj := qminfo(l, g, s)
+		//qmdj := qm(s.SolarDayT, g, jq, l, s)
 		//信息显示到UI界面
 		Text = (solarinfo + lunarinfo + gzinfo + qmdj + winfo + zhisuInfo + isQiSha + number + name + result + jlr + listJg)
 	}
@@ -809,7 +1001,133 @@ func yg13(m, d int) (info string) {
 		info = "十一月二十一杨公忌日\n"
 	}
 	if m == 12 && d == 19 {
-		info = "十一月十九杨公忌日\n"
+		info = "十二月十九杨公忌日\n"
 	}
 	return
 }
+
+/*
+//時家奇門(拆補法)
+func qm(st time.Time, g *ccal.LunarGanZhiInfo, jq *ccal.JieQiInfo, l *ccal.LunarInfo, s *ccal.SolarInfo) (Text string) {
+
+	dg := g.DayGanM                    //日干
+	dz := g.DayZhiM                    //日支
+	dgz := fmt.Sprintf("%s%s", dg, dz) //日干支
+
+	fg, offg := qimen.FuTouGan(g.DayGan)
+	//fmt.Printf("當日天幹數字和符頭天干的差值:%d\n", offg)
+
+	fz := qimen.FuTouZhi(g.DayZhi, offg)
+	//fmt.Printf("符頭天干數字:%d 符頭地支數字:%d\n", fg, fz)
+	f符头 := fmt.Sprintf("符頭:%s%s\n", ganzhi.Gan[fg], ganzhi.Zhi[fz])
+
+	yuan := qimen.FuTouYuan(fg, fz)
+	jqt := qimen.AllJqt(jq.Jqt, jq.Jq11t)
+	jmc := qimen.FestivalName(st, jqt)
+	//fmt.Println("當日爲", jmc, yuan)
+
+	bginfo, err := qimen.BaGongInfo(jmc)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//fmt.Printf("節氣對應的八宫信息:%v\n", bginfo)
+
+	jie := qimen.ConvJie(jmc, solar.JMC)
+	saninfo := bginfo.DingJiu(jie, yuan)
+	//fmt.Printf("三元信息:%v\n", saninfo)
+	//精確的節氣時間
+	jieInfo, _ := qimen.J24H(st.Year(), jie)
+
+	ju := saninfo.DingJu(yuan)
+	info := fmt.Sprintf("拆補定局: %s %s 第%d天 %s遁%d局\n", jie, yuan, offg+1, bginfo.YinYang, ju)
+
+	//旬首
+	旬首 := qimen.X旬首(g.HourGanZhiM)
+	x旬首 := fmt.Sprintf("旬首:%s\n", 旬首)
+
+	//值符
+	//newStarmap := qimen.Z值符定星(旬首, g.HourGanZhiM, ju)
+	newStarmap := qimen.Zf阴遁六甲星数字(旬首, g.HourGanZhiM, ju)
+	n, _ := qimen.Zf六甲时辰(g.HourGanZhiM)
+	值符, _ := qimen.ZF(newStarmap, n)
+	zhifu := fmt.Sprintf("值符:%s\n", 值符)
+
+	//值使
+	zs, _ := qimen.Zs值使(ju, 值符)
+	zhishi := fmt.Sprintf("值使:%s\n", zs)
+	// 	值使, 五行属性 := qimen.ZS八门(值符)
+	//zhishi := fmt.Sprintf("值使:%s　五行%s\n", 值使, 五行属性)
+
+	//-------七元禽星吉凶-------
+	//特殊吉凶日
+	var (
+		info出师吉凶 string
+		info干克支  string
+		info伐日   string
+		info猖鬼败亡 string
+		info八专   string
+		info五不归  string
+		info八绝日  string
+		info用兵吉日 string
+		info十恶大败 string
+		info攻取吉日 string
+		info天败凶日 string
+	)
+
+	jx := 禽.NewQXQM特殊日吉凶(dgz)
+	chushib, isgood := jx.QXQM出師吉日(dgz)
+	if chushib == true {
+		info出师吉凶 = fmt.Sprintf("%s\n", isgood)
+	}
+	gkzb, 干克支 := jx.QXQM干克支日(dgz)
+	if gkzb == true {
+		info干克支 = fmt.Sprintf("%s\n", 干克支)
+	}
+	farib, 支克干 := jx.QXQM伐日(dgz)
+	if farib == true {
+		info伐日 = fmt.Sprintf("%s\n", 支克干)
+	}
+	changguib, 猖鬼 := jx.QXQM猖鬼败亡日(dgz)
+	if changguib == true {
+		info猖鬼败亡 = fmt.Sprintf("%s\n", 猖鬼)
+	}
+	bazhuanb, 八专 := jx.QXQM八专日(dgz)
+	if bazhuanb == true {
+		info八专 = fmt.Sprintf("%s\n", 八专)
+	}
+	wubuguib, 五不归 := jx.QXQM五不归日(dgz)
+	if wubuguib == true {
+		info五不归 = fmt.Sprintf("%s\n", 五不归)
+	}
+	bajuerib, 八绝日 := jx.QXQM八绝日(dgz)
+	if bajuerib == true {
+		info八绝日 = fmt.Sprintf("%s\n", 八绝日)
+	}
+	yongb, 用兵吉日 := jx.QXQM用兵吉日(lunar.Rmc[l.LDay-1])
+	if yongb == true {
+		info用兵吉日 = fmt.Sprintf("%s\n", 用兵吉日)
+	}
+	//十恶大败
+	yg := g.YearGanM
+	seb, 十恶大败 := jx.QXQM十恶大败日(yg, lunar.Ymc[l.LMonth-1], dgz)
+	if seb == true {
+		info十恶大败 = fmt.Sprintf("%s\n", 十恶大败)
+	} else if seb == false {
+		info十恶大败 = fmt.Sprintf("%s\n", 十恶大败)
+	}
+	gqb, 攻取吉日 := jx.QXQM攻取吉日(dgz, farib, bazhuanb, changguib, wubuguib, seb, bajuerib)
+	if gqb == true {
+		info攻取吉日 = fmt.Sprintf("%s\n", 攻取吉日)
+	}
+	//天败凶日
+	tbb, 天败凶日 := jx.QXQM天败凶日(s.SolarDayT, jq.Jqt, dz)
+	if tbb == true {
+		info天败凶日 = fmt.Sprintf("%s\n", 天败凶日)
+	}
+
+	Text = jieInfo + info + f符头 + x旬首 + zhifu + zhishi +
+		info出师吉凶 + info干克支 + info伐日 + info猖鬼败亡 + info八专 + info五不归 + info八绝日 +
+		info用兵吉日 + info十恶大败 + info攻取吉日 + info天败凶日
+	return
+}
+*/

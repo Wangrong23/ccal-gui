@@ -36,7 +36,7 @@ func runMain() {
 
 	//信息
 	basicInfo := &duit.Button{
-		Text:     "信息",
+		Text:     "确定",
 		Colorset: &dui.Primary,
 		Click: func() (e duit.Event) {
 			years := get.Text //string类型
@@ -190,7 +190,7 @@ func runMain() {
 				},
 				Valign: []duit.Valign{duit.ValignMiddle, duit.ValignMiddle},
 				Kids: duit.NewKids(
-					&duit.Label{Text: "农历年"},
+					&duit.Label{Text: "输入"},
 					get,
 				),
 			},

@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Aquarian-Age/ts"
 	"github.com/mjl-/duit"
 	"github.com/nongli/ccal"
 	"github.com/nongli/dimu"
@@ -203,7 +202,8 @@ func run() {
 	}
 	//主界面
 	dui.Top.UI = &duit.Box{
-		Width:   870,
+		MaxWidth: 350, //输入框宽度
+		//Width:   870,
 		Padding: duit.SpaceXY(6, 4),
 		Margin:  image.Pt(6, 4),
 		Kids: duit.NewKids(
@@ -281,67 +281,67 @@ func tongShuZJ(y, m, d, h int, sx string, inputb, mb bool) (Text string) {
 		gzinfo := fmt.Sprintf("干支纪年: %s%s年-%s月-%s%s日-%s时\n\n",
 			g.YearGanM, g.YearZhiM, g.MonthGanZhiM, g.DayGanM, g.DayZhiM, g.HourGanZhiM)
 
-		solarT := time.Date(s.SYear, time.Month(s.SMonth), s.SDay, s.SHour, 0, 0, 0, time.UTC)
+		/*
+			solarT := time.Date(s.SYear, time.Month(s.SMonth), s.SDay, s.SHour, 0, 0, 0, time.UTC)
+			/////////////十二建除
+			   		lunarM := lunar.Ymc[l.LMonth-1]                  //农历月名称
+			   		dgz := fmt.Sprintf("%s%s", g.DayGanM, g.DayZhiM) //日干支
+			   		var rjc, jc string                               //日建除
+			   		switch mb {
+			   		case true: //闰月月份
+			   			lunarLM := lunar.Ymc[l.LeapMonth-1] //农历月名称
+			   			fmt.Printf("农历月:%s\n", lunarLM)
+			   			yjc := ts.JC本月建除(lunarLM)
+			   			ldgz := fmt.Sprintf("%s%s", g.DayGanM, g.DayZhiM) //日干支
+			   			rjc = ts.JC本日建除(ldgz, yjc)
+			   			jc = fmt.Sprintf("%s日:十二建除: %s\n", dgz, rjc)
+			   		case false: //非闰月月份
+			   			yjc := ts.JC本月建除(lunarM)
+			   			rjc = ts.JC本日建除(dgz, yjc)
+			   			jc = fmt.Sprintf("%s日:十二建除: %s\n", dgz, rjc)
+			   		}
 
-		/////////////十二建除
-		lunarM := lunar.Ymc[l.LMonth-1]                  //农历月名称
-		dgz := fmt.Sprintf("%s%s", g.DayGanM, g.DayZhiM) //日干支
-		var rjc, jc string                               //日建除
-		switch mb {
-		case true: //闰月月份
-			lunarLM := lunar.Ymc[l.LeapMonth-1] //农历月名称
-			fmt.Printf("农历月:%s\n", lunarLM)
-			yjc := ts.JC本月建除(lunarLM)
-			ldgz := fmt.Sprintf("%s%s", g.DayGanM, g.DayZhiM) //日干支
-			rjc = ts.JC本日建除(ldgz, yjc)
-			jc = fmt.Sprintf("%s日:十二建除: %s\n", dgz, rjc)
-		case false: //非闰月月份
-			yjc := ts.JC本月建除(lunarM)
-			rjc = ts.JC本日建除(dgz, yjc)
-			jc = fmt.Sprintf("%s日:十二建除: %s\n", dgz, rjc)
-		}
+			   		/////////////////////择日要览
+			   		jqt := ts.JQT(y) //节气
+			   		//输入农历对应的阳历时间
 
-		/////////////////////择日要览
-		jqt := ts.JQT(y) //节气
-		//输入农历对应的阳历时间
+			   		ymc := ts.ZRYL月名称(lunarM)
 
-		ymc := ts.ZRYL月名称(lunarM)
+			   		月将 := ts.ZRYL月将(solarT, jqt) //按节气划分月将
+			   		yuejiang := fmt.Sprintf("月将: %s\n", 月将.Name)
 
-		月将 := ts.ZRYL月将(solarT, jqt) //按节气划分月将
-		yuejiang := fmt.Sprintf("月将: %s\n", 月将.Name)
+			   		//本月吉凶日
+			   		rjx := ymc.ZRYL本月吉凶日()
+			   		yjx := fmt.Sprintf("本月吉日:\n\t天赦日:%s\n\t母仓日:%s\n\t天德合日:%s\n\t月恩日:%s\n"+
+			   			"本月凶日:\n\t杨公忌:%s\n\t瘟星:%s\n\t天地凶败:%s\n\t天乙绝气:%s\n"+
+			   			"\t长短星:%s\n\t赤口:%s\n\t天休废:%s\n"+
+			   			"\t大空亡:%s\n\t小空亡:%s\n\t四方耗:%s\n",
+			   			rjx.TianShe, rjx.MuCang, rjx.TianDeHe, rjx.YueEn,
+			   			rjx.YangGongJi, rjx.WengXing, rjx.TianDiXiongBai, rjx.TianYiJueQi,
+			   			rjx.ChangDuanXing, rjx.ChiKou, rjx.TianXiuFei,
+			   			rjx.DaKongWang, rjx.XiaoKongWang, rjx.SiFangHao)
 
-		//本月吉凶日
-		rjx := ymc.ZRYL本月吉凶日()
-		yjx := fmt.Sprintf("本月吉日:\n\t天赦日:%s\n\t母仓日:%s\n\t天德合日:%s\n\t月恩日:%s\n"+
-			"本月凶日:\n\t杨公忌:%s\n\t瘟星:%s\n\t天地凶败:%s\n\t天乙绝气:%s\n"+
-			"\t长短星:%s\n\t赤口:%s\n\t天休废:%s\n"+
-			"\t大空亡:%s\n\t小空亡:%s\n\t四方耗:%s\n",
-			rjx.TianShe, rjx.MuCang, rjx.TianDeHe, rjx.YueEn,
-			rjx.YangGongJi, rjx.WengXing, rjx.TianDiXiongBai, rjx.TianYiJueQi,
-			rjx.ChangDuanXing, rjx.ChiKou, rjx.TianXiuFei,
-			rjx.DaKongWang, rjx.XiaoKongWang, rjx.SiFangHao)
+			   		//日吉凶信息
+			   		lsjz := ymc.ZRYL今日干支信息(dgz)
+			   		brjx := fmt.Sprintf("本日干支:%s\n纳音属性:%s\n十二建除:%s\n黃道:%s\n黑道:%s\n",
+			   			lsjz.Name, lsjz.NaYin, lsjz.JianChu, lsjz.HuangDao, lsjz.HeiDao)
 
-		//日吉凶信息
-		lsjz := ymc.ZRYL今日干支信息(dgz)
-		brjx := fmt.Sprintf("本日干支:%s\n纳音属性:%s\n十二建除:%s\n黃道:%s\n黑道:%s\n",
-			lsjz.Name, lsjz.NaYin, lsjz.JianChu, lsjz.HuangDao, lsjz.HeiDao)
+			   		//接口实现　日吉凶信息
+			   		//ts.ZRYL今日干支信息(lunarM, dgz)
 
-		//接口实现　日吉凶信息
-		//ts.ZRYL今日干支信息(lunarM, dgz)
-
-		////////////////日时总览
-		//天赦日
-		var tiansheri string
-		jcb := ts.Is开日(rjc, "")
-		天赦日 := ts.RSZL天赦日(l.LYear, solarT, lunarM, dgz, jcb)
-		if 天赦日 != "" {
-			tiansheri = fmt.Sprintf("%s\n", 天赦日)
-		}
+			   		////////////////日时总览
+			   		//天赦日
+			   		var tiansheri string
+			   		jcb := ts.Is开日(rjc, "")
+			   		天赦日 := ts.RSZL天赦日(l.LYear, solarT, lunarM, dgz, jcb)
+			   		if 天赦日 != "" {
+			   			tiansheri = fmt.Sprintf("%s\n", 天赦日)
+			   		} */
 
 		////////////////择时要览
 
 		//显示到gui界面
-		Text = solarinfo + lunarinfo + gzinfo + jc + yuejiang + yjx + brjx + tiansheri
+		Text = solarinfo + lunarinfo + gzinfo /* + jc + yuejiang + yjx + brjx + tiansheri */
 	case false:
 		Text = fmt.Sprintf("数字输入错\n")
 		os.Exit(1)

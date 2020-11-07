@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.5.1.min.js"></script>
+	<title>CCAL</title>
+</head>
+
+<body>
+		<!--跳转择日页面-->
+		<div style="text-align: center;">
+			<a href="/forminput"> <button onchange="zeri()">择日页面</button></a>
+		</div>
+		<div title="悬停显示的说明文字" style="text-align: center" >鼠标悬停示例</div>
+
+	<div style="text-align: center;">
+		<!--输入部分-->
+		<form action="forminput" id="form1" method="POST">
+			年: <input type="text" name="ly" style="width: 40px" />
+			月: <input type="text" name="lm" style="width: 40px" />
+			日: <input type="text" name="ld" style="width: 40px" />
+			时: <input type="text" name="lh" style="width: 40px" />
+			生肖:<input type="text" name="la" style="width: 40px" />
+			闰月:<input type="text" name="le" style="width: 40px" />
+			<input type="button" value="确认" />
+		</form>
+	</div>
+
+	<!--点击按钮-->
+	<div style="text-align: center;">
+		<button id="jnBtn" onclick="jinian()">纪年信息</button>
+		<button id="dmjBtn" onclick="dmj()">地母经</button>
+		<button id="zejiBtn" onclick="zeji()">小六壬择吉</button>
+		<button id="xjbfBtn" onclick="xjbfs()">择日(协纪辩方书)</button>
+		<button id="tongshuBtn" onclick="tongshu()">择日(通书)</button>
+		<button id="listdayBtn" onclick="listday()">月历表</button>
+		<button id="jqBtn" onclick="jq()">节气</button>
+	</div>
+	<!-- 横线 -->
+	<hr>
+	<!-- 显示点击按钮对应的信息 纪年信息 地母经 小六壬择吉共用一个显示页面 月历表 24节气单独显示-->
+	<p id="showInfo"></p>
+	<!-- 月历表 -->
+	<p id="DAY"></p>
+	<!-- 24节气 -->
+	<p id="JQ"></p>
+
+	<script type="text/javascript">
+    	//跳转
+		function zeri(){
+			window.open("/forminput")
+		}
+
+		//纪年信息
+		function jinian() {
+			$.ajax({
+				//几个参数需要注意一下
+				type: "POST", //方法类型
+				dataType: "json", //预期服务器返回的数据类型
+				url: "/forminput", //url
+				data: $('#form1').serialize(),
+				success: function(data) { 
+					//var s = document.getElementById("jiNian")
+					var p = document.getElementById("showInfo")
+					p.innerHTML=data.jinianInfo
+					//s.innerHTML = data.solarInfo + '<br />' + data.lunarInfo + '<br />' + data.gzInfo + '<br />' + data.nyInfo
+				},
+				error: function(data) {
+					alert("异常！");
+				}
+			});
+		}
+		//地母经
+		function dmj() {
+			$.ajax({
+				//几个参数需要注意一下
+				type: "POST", //方法类型
+				dataType: "json", //预期服务器返回的数据类型
+				url: "/forminput", //url
+				data: $('#form1').serialize(),
+				success: function(data) { 
+					var p = document.getElementById("showInfo")
+					p.innerHTML = data.dmInfo
+				},
+				error: function(data) {
+					alert("异常！");
+				}
+			});
+		}
+				//择吉
+				function zeji() {
+			$.ajax({
+				//几个参数需要注意一下
+				type: "POST", //方法类型
+				dataType: "json", //预期服务器返回的数据类型
+				url: "/forminput", //url
+				data: $('#form1').serialize(),
+				success: function(data) { 
+					var p = document.getElementById("showInfo")
+					p.innerHTML = data.starnameInfo + "<br />" + data.starInfo + "<br />" + data.zejiInfo
+				},
+				error: function(data) {
+					alert("异常！");
+				}
+			});
+		}
+		//择日-协纪辩方书
+		function xjbfs(){
+			$.ajax({
+			//几个参数需要注意一下
+			type: "POST", //方法类型
+			dataType: "json", //预期服务器返回的数据类型
+			url: "/forminput", //url
+			data: $('#form1').serialize(),
+			success: function(data) { 
+				//协纪辩方书写入html内容
+				console.log(data.xjbfsNB,data.xjbfsYB,data.xjbfsRB,data.xjbfsBW+data.tsRSZL);
+				var p = document.getElementById("showInfo");
+				p.innerHTML=data.xjbfsNB+"<br />"+data.xjbfsYB+"<br />"+data.xjbfsRB+"<br />"+data.xjbfsBW+"<br />"+data.tsRSZL;
+			},
+			error: function() {
+				console.log("异常!")
+			}
+		});
+		}
+		//择日-通书
+		function tongshu(){
+			$.ajax({
+			//几个参数需要注意一下
+			type: "POST", //方法类型
+			dataType: "json", //预期服务器返回的数据类型
+			url: "/forminput", //url
+			data: $('#form1').serialize(),
+			success: function(data) { 
+				//通书 写入html内容
+			},
+			error: function() {
+				console.log("异常!")
+			}
+		});
+		}
+		//24节气
+		function jq() {
+			$.ajax({
+				//几个参数需要注意一下
+				type: "POST", //方法类型
+				dataType: "json", //预期服务器返回的数据类型
+				url: "/forminput", //url
+				data: $('#form1').serialize(),
+				success: function(data) { 
+					var p = document.getElementById("JQ")
+					var jq = data.jqInfo
+					p.innerHTML = jq[0] + '<br />' + jq[1] + '<br />' + jq[2] + '<br />' +
+						jq[3] + '<br />' + jq[4] + '<br />' + jq[5] + '<br />' + jq[6] + '<br />' +
+						jq[7] + '<br />' + jq[8] + '<br />' + jq[9] + '<br />' + jq[10] + '<br />' +
+						jq[11] + '<br />' + jq[12] + '<br />' + jq[13] + '<br />' + jq[14] + '<br />' +
+						jq[15] + '<br />' + jq[16] + '<br />' + jq[17] + '<br />' + jq[18] + '<br />' +
+						jq[19] + '<br />' + jq[20] + '<br />' + jq[21] + '<br />' + jq[22] + '<br />' +
+						jq[23] + '<br />' + jq[24] + '<br />' + jq[25] + '<br />' + jq[26] + '<br />'
+				},
+				error: function(data) {
+					alert("异常！");
+				}
+			});
+		}
+		//月历表
+		function listday() {
+			$.ajax({
+				//几个参数需要注意一下
+				type: "POST", //方法类型
+				dataType: "json", //预期服务器返回的数据类型
+				url: "/forminput", //url
+				data: $('#form1').serialize(),
+				success: function(data) { 
+					var p = document.getElementById("DAY")
+					p.innerHTML = data.listdayInfo
+				},
+				error: function(data) {
+					alert("异常！");
+				}
+			});
+		}
+	</script>
+
+</body>
+
+</html>

@@ -1,37 +1,33 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"image"
 	"log"
-	"os"
+	"net/http"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/Aquarian-Age/nongli/ccal"
+	"github.com/Aquarian-Age/nongli/dimu"
 	"github.com/Aquarian-Age/nongli/lunar"
+	"github.com/Aquarian-Age/nongli/solar"
+	"github.com/Aquarian-Age/nongli/zeji"
 	ganzhi "github.com/Aquarian-Age/ts/gz"
 	ts "github.com/Aquarian-Age/ts/tongshu"
-	"github.com/mjl-/duit"
 )
 
 var (
-	T      = time.Now().Local()
-	status = &duit.Label{Text: "农历择日\n\n使用方法: 输入农历的年月日时辰闰月:\n比如农历2020年六月六日十一时\n比如2020060611f\n"}
-	get    = &duit.Field{} //年
+	T    = time.Now().Local() //当前时间
+	jz60 = ganzhi.MakeJZ60()  //六十甲子
+	i    ts.ZRYLImpl          //协纪辩方择日方法
+	zr   *ZR
 )
 
-type Input struct {
-	Y int  //年數字
-	M int  //月數字
-	D int  //日數字
-	H int  //時辰數字　1子時　2丑時...１２亥時
-	B bool //閏月判斷　f非閏月　t當月爲閏月
-}
-
-//////////////////////通书
-type TongShu struct {
+//择日信息
+type ZR struct {
 	syear  int       //阳历年
 	smonth int       //阳历月
 	sday   int       //阳历日
@@ -59,174 +55,200 @@ type TongShu struct {
 	leapmonth  int    //闰月
 }
 
-var jz60 = ganzhi.MakeJZ60()
-var i ts.ZRYLImpl
-var tos *TongShu
-
-////////////////////////
-
-func init() {
-	os.Setenv("font", "/opt/fonts/unifont/unifont.font")
+//协纪辩方书
+type XJBF struct {
+	NB string `json:"xjbfsNB"` //协纪辩方书 年表
+	YB string `json:"xjbfsYB"` //协纪辩方书 月表
+	RB string `json:"xjbfsRB"` //协纪辩方书 日表
+	BW string `json:"xjbfsBW"` //协纪辩方书 辩伪
+	RS string `json:"tsRSZL"`  //通书 日时总览
 }
 
-func main() {
-	runMain()
+//应答数据
+type Resp struct {
+	JiNian   string   `json:"jinianInfo"`   //纪年信息
+	Dmj      string   `json:"dmInfo"`       //地母经
+	Jq       []string `json:"jqInfo"`       //24节气
+	ListDay  []string `json:"listdayInfo"`  //农历月历表(农历初一开始)
+	StarName string   `json:"starnameInfo"` //当日值宿名称(28宿)
+	StarInfo string   `json:"starInfo"`     //值宿信息
+	Zeji     string   `json:"zejiInfo"`     //当日择吉信息
+	XJBF
 }
 
-func runMain() {
-	dui, err := duit.NewDUI("择日", nil)
-	if err != nil {
-		log.Fatalf("%s\n", err)
-	}
-
-	//纪年信息
-	basicInfo := &duit.Button{
-		Text:     "信息",
-		Colorset: &dui.Primary,
-		Click: func() (e duit.Event) {
-			years := get.Text //string类型
-			sx := "猴"
-
-			//类型转换
-			infos := conv(years)
-			y := infos.Y
-			m := infos.M
-			d := infos.D
-			h := infos.H
-			b := infos.B
-
-			//日期干支信息
-			err, s, l, g, _ := ccal.Input(y, m, d, h, sx, b)
-			if err != nil {
-				log.Fatal("ccal:", err)
-			}
-
-			hgz := convHourZhi(g.HourGanZhiM)
-			tos = &TongShu{
-				syear:      s.SYear,
-				smonth:     s.SMonth,
-				sday:       s.SDay,
-				sweek:      s.SWeek,
-				stime:      s.SolarDayT,
-				lyear:      l.LYear,
-				lmonth:     l.LMonth,
-				lday:       l.LDay,
-				aliasyg:    g.YearGanM,
-				aliasyz:    g.YearZhiM,
-				aliasygz:   fmt.Sprintf("%s%s", g.YearGanM, g.YearZhiM),
-				aliasmgz:   g.MonthGanZhiM,
-				aliasday:   convRmc(l.LDay),
-				aliasmonth: convYmc(l.LMonth),
-				dgz:        fmt.Sprintf("%s%s", g.DayGanM, g.DayZhiM),
-				daygan:     g.DayGanM,
-				hourgz:     g.HourGanZhiM,
-				hourz:      hgz,
-				leapmb:     l.Leapmb,
-				ydx:        l.LYdxs,
-				aliasHour:  l.LaliasHour,
-				hour:       l.LHour,
-				leapmonth:  l.LeapMonth,
-			}
-			//
-			jinian := tos.Lunar()              //基本纪年信息
-			nayin := tos.NaYin()               //干支纳因
-			yeartab := tos.YearTab()           //协纪辩方 年表
-			djc, jcb := tos.JCM()              //协纪辩方 建除十二神煞(日)
-			monthtab := tos.MonthTab(djc, jcb) //协纪辩方 月表
-			daytab := tos.DayTab()             //协纪辩方 日表
-			bianwei := tos.BianWei()           //协纪辩方 辩伪+其他
-			///////////////////////
-			//UI显示
-			status.Text = jinian + nayin + yeartab + monthtab + daytab + bianwei
-			dui.MarkLayout(status)
-			return
-		},
-	}
-
-	//ui
-	dui.Top.UI = &duit.Box{
-		Padding: duit.SpaceXY(6, 4), //从窗口插入
-		Margin:  image.Pt(6, 4),     //此框中kids之间的空间
-		Kids: duit.NewKids(
-			status,
-			&duit.Grid{
-				Columns: 2,
-				Padding: []duit.Space{
-					{Right: 6, Top: 4, Bottom: 4},
-					{Left: 6, Top: 4, Bottom: 4},
-				},
-				Valign: []duit.Valign{duit.ValignMiddle, duit.ValignMiddle},
-				Kids: duit.NewKids(
-					&duit.Label{Text: "农历年"},
-					get,
-				),
-			},
-			basicInfo, //信息
-		),
-	}
-	//第一次绘制整个用户界面
-	dui.Render()
-
-	//主循环
-	for {
-		//监听两个chan
-		select {
-		case e := <-dui.Inputs:
-			dui.Input(e)
-
-		case warn, ok := <-dui.Error:
-			if !ok {
-				return
-			}
-			log.Printf("duit: %s\n", warn)
-		}
-	}
-}
-
-//基础历法
-func (tos *TongShu) Lunar() string {
-	//闰月汉字表示
-	var aliasM string
-	if tos.leapmb == true {
-		aliasM = "是"
+//表单提交
+func forminput(w http.ResponseWriter, r *http.Request) {
+	//请求
+	fmt.Println("method:", r.Method) //获取请求的方法
+	if r.Method == "GET" {
+		t, _ := template.ParseFiles("index.html")
+		t.Execute(w, nil)
 	} else {
-		aliasM = "否"
-	}
-	//基础信息
-	fmt.Printf("阳历纪年: %d年-%d月-%d日-周%s\n", tos.syear, tos.smonth, tos.sday, tos.sweek)
-	fmt.Printf("农历纪年: %d年%s月(%s)%s %s时(%d时)\n本年是否有闰月:%s 闰%d月\n",
-		tos.lyear, lunar.Ymc[tos.lmonth-1], tos.ydx, lunar.Rmc[tos.lday-1],
-		tos.aliasHour, tos.hour, aliasM, tos.leapmonth)
-	fmt.Printf("干支纪年: %s%s年-%s月-%s日-%s时\n",
-		tos.aliasyg, tos.aliasyz, tos.aliasmgz, tos.dgz, tos.hourgz)
-	///gui
-	s1 := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s\n", tos.syear, tos.smonth, tos.sday, tos.sweek)
-	s2 := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %s时(%d时)\n本年是否有闰月:%s 闰%d月\n",
-		tos.lyear, lunar.Ymc[tos.lmonth-1], tos.ydx, lunar.Rmc[tos.lday-1],
-		tos.aliasHour, tos.hour, aliasM, tos.leapmonth)
-	s3 := fmt.Sprintf("干支纪年: %s%s年-%s月-%s日-%s时\n",
-		tos.aliasyg, tos.aliasyz, tos.aliasmgz, tos.dgz, tos.hourgz)
+		//解析表单
+		r.ParseForm()
 
-	return s1 + s2 + s3
+		ly, err := strconv.Atoi(r.Form["ly"][0])
+		if err != nil {
+			log.Fatalln("ly:", err)
+		}
+		lm, err := strconv.Atoi(r.Form["lm"][0])
+		if err != nil {
+			log.Fatalln(err)
+		}
+		ld, err := strconv.Atoi(r.Form["ld"][0])
+		if err != nil {
+			log.Fatalln(err)
+		}
+		lh, err := strconv.Atoi(r.Form["lh"][0])
+		if err != nil {
+			log.Fatalln(err)
+		}
+		sx := r.Form["la"][0]
+		sb := r.Form["le"][0]
+		var leapb bool
+		if strings.EqualFold(sb, "t") {
+			leapb = true
+		} else if strings.EqualFold(sb, "f") {
+			leapb = false
+		}
+
+		//应答 (浏览器开发模式 Console看结果)
+		/////////////////////////////ccal农历基本纪年信息
+		b := leapb
+		_, s, l, g, jq := ccal.Input(ly, lm, ld, lh, sx, b)
+		var aliasM string
+		if l.Leapmb == true {
+			aliasM = "是"
+		} else {
+			aliasM = "否"
+		}
+		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s\n", s.SYear, s.SMonth, s.SDay, s.SWeek)
+		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %s时(%d时)<br />本年是否有闰月:%s闰%d月\n", l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1], l.LaliasHour, l.LHour, aliasM, l.LeapMonth)
+		gzinfo := fmt.Sprintf("干支纪年: %s%s年-%s月-%s%s日-%s时\n",
+			g.YearGanM, g.YearZhiM, g.MonthGanZhiM, g.DayGanM, g.DayZhiM,
+			g.HourGanZhiM)
+		//纳音
+		aliasygz := fmt.Sprintf("%s%s", g.YearGanM, g.YearZhiM)
+		aliasmgz := g.MonthGanZhiM
+		dgz := fmt.Sprintf("%s%s", g.DayGanM, g.DayZhiM)
+		hourgz := g.HourGanZhiM
+
+		ygzny := ganzhi.GZ纳音(aliasygz)
+		mgzny := ganzhi.GZ纳音(aliasmgz)
+		dgzny := ganzhi.GZ纳音(dgz)
+		hgzny := ganzhi.GZ纳音(hourgz)
+		nyinfo := fmt.Sprintf("干支纳音: %s %s %s %s\n", ygzny[aliasygz], mgzny[aliasmgz], dgzny[dgz], hgzny[hourgz])
+		jinianinfo := solarinfo + "<br />" + lunarinfo + "<br />" + gzinfo + "<br />" + nyinfo
+
+		/////////////////地母经
+		dmg := g.YearGan
+		dmz := g.YearZhi
+		infodmj := dimu.DimuInfo(dmg, dmz)
+		dmjinfo := fmt.Sprintf("%s", infodmj)
+
+		///////////////24节气
+		jq24info := solar.ShowJieqi24(jq.Jqt, jq.Jq11t)
+
+		////////////////农历月历表
+		_, listday, _ := zeji.ListLunarDay(jq, l)
+
+		///////////小六壬择吉
+		iqs := zeji.ZhiSu(s, g)
+		starName := iqs.StarNames        //值宿名称
+		zhisus := fmt.Sprintf(iqs.ZhiSu) //当日值宿信息
+		fmt.Printf("二十八宿:\"%s\"\n %s\n", starName, zhisus)
+		//七煞判断
+		qsB := iqs.IsQiSha(s.SolarDayT, g.DayZhiM)
+		nx := zeji.AllNumber(g.YearZhi, l.LMonth, l.LDay, l.LHour)
+		n1b := nx.YiPan()
+		n2b := nx.ErPan()
+		n3b := nx.SanPan()
+		zeji := zeji.ShowResult(n1b, n2b, n3b, qsB)
+		fmt.Printf("择吉结果: %s\n", zeji)
+
+		//择日 协纪辩方书
+		hgz := convHourZhi(g.HourGanZhiM)
+		zr = &ZR{
+			syear:      s.SYear,
+			smonth:     s.SMonth,
+			sday:       s.SDay,
+			sweek:      s.SWeek,
+			stime:      s.SolarDayT,
+			lyear:      l.LYear,
+			lmonth:     l.LMonth,
+			lday:       l.LDay,
+			aliasyg:    g.YearGanM,
+			aliasyz:    g.YearZhiM,
+			aliasygz:   fmt.Sprintf("%s%s", g.YearGanM, g.YearZhiM),
+			aliasmgz:   g.MonthGanZhiM,
+			aliasday:   convRmc(l.LDay),
+			aliasmonth: convYmc(l.LMonth),
+			dgz:        fmt.Sprintf("%s%s", g.DayGanM, g.DayZhiM),
+			daygan:     g.DayGanM,
+			hourgz:     g.HourGanZhiM,
+			hourz:      hgz,
+			leapmb:     l.Leapmb,
+			ydx:        l.LYdxs,
+			aliasHour:  l.LaliasHour,
+			hour:       l.LHour,
+			leapmonth:  l.LeapMonth,
+		}
+		yeartab := zr.YearTab()           //协纪辩方 年表
+		djc, jcb := zr.JCM()              //协纪辩方 建除十二神煞(日)
+		monthtab := zr.MonthTab(djc, jcb) //协纪辩方 月表
+		daytab := zr.DayTab()             //协纪辩方 日表
+		bianwei := zr.BianWei()           //协纪辩方 辩伪+其他
+		rszl := zr.RSZL()                 //通书日时总览
+
+		xjbfs := XJBF{
+			NB: yeartab,
+			YB: monthtab,
+			RB: daytab,
+			BW: bianwei,
+			RS: rszl,
+		}
+
+		resp := Resp{
+			JiNian:   jinianinfo,
+			Dmj:      dmjinfo,
+			Jq:       jq24info,
+			ListDay:  listday,
+			StarName: starName,
+			StarInfo: zhisus,
+			Zeji:     zeji,
+			XJBF:     xjbfs,
+		}
+
+		//fmt.Println(resp)
+		json.NewEncoder(w).Encode(resp)
+	}
 }
 
-//干支纳音
-func (tos *TongShu) NaYin() string {
-	ygzny := ganzhi.GZ纳音(tos.aliasygz)
-	mgzny := ganzhi.GZ纳音(tos.aliasmgz)
-	dgzny := ganzhi.GZ纳音(tos.dgz)
-	hgzny := ganzhi.GZ纳音(tos.hourgz)
-	return fmt.Sprintf("干支纳音: %s %s %s %s\n",
-		ygzny[tos.aliasygz], mgzny[tos.aliasmgz], dgzny[tos.dgz], hgzny[tos.hourgz])
+func home(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "%s\n", "农历 协纪辩方 通书 择日")
+	if r.Method == "GET" {
+		t, _ := template.ParseFiles("index.html")
+		t.Execute(w, nil)
+	} else {
+		r.ParseForm()
+	}
+}
+func main() {
+	http.HandleFunc("/", home)
+	http.HandleFunc("/forminput", forminput) //设置访问的路由
+	err := http.ListenAndServe(":9090", nil) //设置监听的端口
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
 }
 
 //协纪辩方 年表
-func (tos *TongShu) YearTab() string {
-	dgz := tos.dgz
-	ygz := tos.aliasygz
-	mgz := tos.aliasmgz
-	yz := tos.aliasyz
-	aliasmonth := tos.aliasmonth
+func (xjbf *ZR) YearTab() string {
+	dgz := xjbf.dgz
+	ygz := xjbf.aliasygz
+	mgz := xjbf.aliasmgz
+	yz := xjbf.aliasyz
+	aliasmonth := xjbf.aliasmonth
 	i = &ts.ZRYL{
 		YGZ:          ygz,
 		DGZ:          dgz,
@@ -239,9 +261,9 @@ func (tos *TongShu) YearTab() string {
 }
 
 //协纪辩方 建除(月日论)
-func (tos *TongShu) JCM() (string, bool) {
-	m := tos.aliasmonth //农历月别名
-	dgz := tos.dgz      //日干支
+func (xjbf *ZR) JCM() (string, bool) {
+	m := xjbf.aliasmonth //农历月别名
+	dgz := xjbf.dgz      //日干支
 	i = &ts.ZRYL{
 		AliasMonth: m,
 		DGZ:        dgz,
@@ -250,14 +272,14 @@ func (tos *TongShu) JCM() (string, bool) {
 }
 
 //协纪辩方 月表
-func (tos *TongShu) MonthTab(djc string, jcb bool) string {
-	ygz := tos.aliasygz
-	m := tos.aliasmonth
-	ly := tos.lyear
-	st := tos.stime
-	mgz := tos.aliasmgz
-	dgz := tos.dgz
-	lday := tos.lday
+func (xjbf *ZR) MonthTab(djc string, jcb bool) string {
+	ygz := xjbf.aliasygz
+	m := xjbf.aliasmonth
+	ly := xjbf.lyear
+	st := xjbf.stime
+	mgz := xjbf.aliasmgz
+	dgz := xjbf.dgz
+	lday := xjbf.lday
 	i = &ts.ZRYL{
 		YGZ:        ygz,
 		AliasMonth: m,
@@ -272,9 +294,9 @@ func (tos *TongShu) MonthTab(djc string, jcb bool) string {
 }
 
 //协纪辩方 日表
-func (tos *TongShu) DayTab() string {
-	dgz := tos.dgz
-	hgz := tos.hourgz
+func (xjbf *ZR) DayTab() string {
+	dgz := xjbf.dgz
+	hgz := xjbf.hourgz
 	i = &ts.ZRYL{
 		DGZ: dgz,
 		HGZ: hgz,
@@ -283,58 +305,36 @@ func (tos *TongShu) DayTab() string {
 }
 
 //协纪辩方书 辩伪+其他
-func (tos *TongShu) BianWei() string {
-	ygz := tos.aliasygz
-	mgz := tos.aliasmgz
-	dgz := tos.dgz
-	hgz := tos.hourgz
+func (xjbf *ZR) BianWei() string {
+	ygz := xjbf.aliasygz
+	mgz := xjbf.aliasmgz
+	dgz := xjbf.dgz
+	hgz := xjbf.hourgz
+	var guc, gus, th string
 	guchen, guasu := ts.XJBF孤辰寡宿(ygz, mgz, dgz, hgz)
+	if guchen != "" {
+		guc = guchen
+	} else if guasu != "" {
+		gus = guasu
+	}
 	taohua := ts.XCTH咸池桃花(ygz, mgz, dgz, hgz)
-	return guchen + guasu + taohua
+	if taohua != "" {
+		th = taohua
+	}
+	return "\n----孤辰寡宿 咸池桃花----\n" +
+		guc + " " + gus + " " + th
 }
 
-//字符串转数字
-func conv(s string) *Input {
-	rs := []rune(s)
-	ys := string(rs[:4])  //年數字
-	ms := string(rs[4:6]) //月數字
-	ds := string(rs[6:8])
-	hs := string(rs[8:10]) //時辰數字1子時　2丑時...１２亥時
-	bs := string(rs[10:11])
-
-	y, err := strconv.Atoi(ys)
-	if err != nil {
-		log.Fatal("年份時間解析:", err)
-	}
-
-	m, err := strconv.Atoi(ms)
-	if err != nil {
-		log.Fatal("月份時間解析:", err)
-	}
-	d, err := strconv.Atoi(ds)
-	if err != nil {
-		log.Fatal("日期時間解析:", err)
-	}
-	h, err := strconv.Atoi(hs)
-	if err != nil {
-		log.Fatal("時辰解析:", err)
-	}
-	b, err := strconv.ParseBool(bs)
-	if err != nil {
-		log.Fatal("閏月解析:", err)
-	}
-
-	//fmt.Sprintf("input: y:%v m:%v d:%v h:%v b:%t\n", y, m, d, h, b)
-	return &Input{
-		Y: y,
-		D: d,
-		M: m,
-		H: h,
-		B: b,
-	}
+//通书 日时总览方法
+func (tos *ZR) RSZL() string {
+	m := tos.aliasmonth
+	dgz := tos.dgz
+	rmc := tos.aliasday
+	aliasHour := tos.aliasHour
+	return ts.RSZLResult(m, dgz, rmc, aliasHour)
 }
 
-//找出时辰地支
+//时辰地支
 func convHourZhi(hourgz string) (alias string) {
 	zhi := []string{"子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"}
 	for i := 0; i < len(zhi); i++ {
@@ -346,7 +346,7 @@ func convHourZhi(hourgz string) (alias string) {
 	return
 }
 
-//这里日名称用的是廿
+//日名称 这里用的是廿
 func convRmc(n int) (alias string) {
 	rmc := []string{
 		"初一", "初二", "初三", "初四", "初五", "初六", "初七", "初八", "初九", "初十",

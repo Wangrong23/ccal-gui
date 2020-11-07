@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"path/filepath"
 	"strconv"
 
 	"github.com/nongli/ccal"
@@ -25,14 +26,14 @@ func main() {
 		log.Fatal("window:", err)
 	}
 	//从html文件载入内容
-	/* 	//fp, err := filepath.Abs("ccal-sciter.html")
-	   	if err != nil {
-	   		log.Fatal("file:", err)
-	   	}
+	fp, err := filepath.Abs("ccal-sciter.html")
+	if err != nil {
+		log.Fatal("file:", err)
+	}
 
-		   w.LoadFile(fp) */
+	w.LoadFile(fp)
 	//载入代码html内容
-	w.LoadHtml(html, "")
+	//w.LoadHtml(html, "")
 	//前端交互
 	w.DefineFunction("yearinfo", yearinfo)
 

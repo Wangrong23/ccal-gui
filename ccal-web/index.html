@@ -9,9 +9,12 @@
 </head>
 
 <body>
-    	<!--跳转择日页面-->
-		<a href="/forminput"> <button onchange="zeri()">择日页面</button></a>
-	<div>
+		<!--跳转择日页面-->
+		<div style="text-align: center;">
+			<a href="/forminput"> <button onchange="zeri()">择日页面</button></a>
+		</div>
+		
+	<div style="text-align: center;">
 		<!--输入部分-->
 		<form action="forminput" id="form1" method="POST">
 			年: <input type="text" name="ly" style="width: 40px" />
@@ -24,21 +27,21 @@
 		</form>
 	</div>
 
-	<!--基础纪年信息-->
-	<div>
-		<p id="jiNian"></p>
+	<!--点击按钮-->
+	<div style="text-align: center;">
+		<button id="jnBtn" onclick="jinian()">纪年信息</button>
+		<button id="dmjBtn" onclick="dmj()">地母经</button>
+		<button id="zejiBtn" onclick="zeji()">小六壬择吉</button>
+		<button id="listdayBtn" onclick="listday()">月历表</button>
+		<button id="jqBtn" onclick="jq()">节气</button>
 	</div>
-
-	<button id="dmjBtn" onclick="dmj()">地母经</button>
-	<p id="DM"></p>
-
-	<button id="zejiBtn" onclick="zeji()">小六壬择吉</button>
-	<p id="ZJ"></p>
-
-	<button id="listdayBtn" onclick="listday()">月历表</button>
+	<!-- 横线 -->
+	<hr>
+	<!-- 显示点击按钮对应的信息 纪年信息 地母经 小六壬择吉共用一个显示页面 月历表 24节气单独显示-->
+	<p id="showInfo"></p>
+	<!-- 月历表 -->
 	<p id="DAY"></p>
-
-	<button id="jqBtn" onclick="jq()">节气</button>
+	<!-- 24节气 -->
 	<p id="JQ"></p>
 
 	<script type="text/javascript">
@@ -62,7 +65,8 @@
 			}
 		});
 		//纪年信息
-		function getinput() {
+		
+		function jinian() {
 			$.ajax({
 				//几个参数需要注意一下
 				type: "POST", //方法类型
@@ -70,7 +74,8 @@
 				url: "/forminput", //url
 				data: $('#form1').serialize(), //这是你要传给后台的data值
 				success: function(data) { //data对应上面form1的data
-					var s = document.getElementById("jiNian")
+					//var s = document.getElementById("jiNian")
+					var s = document.getElementById("showInfo")
 					s.innerHTML = data.solarInfo + '<br />' + data.lunarInfo + '<br />' + data.gzInfo + '<br />' + data.nyInfo
 				},
 				error: function(data) {
@@ -89,7 +94,8 @@
 				url: "/forminput", //url
 				data: $('#form1').serialize(), //这是你要传给后台的data值
 				success: function(data) { //data对应上面form1的data
-					var p = document.getElementById("DM")
+					//var p = document.getElementById("DM")
+					var p = document.getElementById("showInfo")
 					p.innerHTML = data.dmInfo
 				},
 				error: function(data) {
@@ -147,7 +153,7 @@
 				url: "/forminput", //url
 				data: $('#form1').serialize(), //这是你要传给后台的data值
 				success: function(data) { //data对应上面form1的data
-					var p = document.getElementById("ZJ")
+					var p = document.getElementById("showInfo")
 					p.innerHTML = data.starnameInfo + "<br />" + data.starInfo + "<br />" + data.zejiInfo
 				},
 				error: function(data) {

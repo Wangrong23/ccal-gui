@@ -64,13 +64,6 @@ type XJBF struct {
 	RS string `json:"tsRSZL"`  //通书 日时总览
 }
 
-type JN struct {
-	SR string //阳历纪年
-	LR string //农历纪年
-	GZ string //干支信息
-	NY string //纳因信息
-}
-
 //应答数据
 type Resp struct {
 	//JN
@@ -84,34 +77,60 @@ type Resp struct {
 	XJBF
 }
 
-//表单提交
-func ccalWeb(w http.ResponseWriter, r *http.Request) {
-	//请求
-	fmt.Println("method:", r.Method) //获取请求的方法
+//宜忌
+func ccalyj(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		t, _ := template.ParseFiles("index.html")
+		t, _ := template.ParseFiles("ccal.html")
+		t.Execute(w, nil)
+	} else {
+		r.ParseForm()
+	}
+}
+
+func home(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		t, _ := template.ParseFiles("home.html")
 		t.Execute(w, nil)
 	} else {
 		//解析表单
 		r.ParseForm()
-
+		//农历年
 		ly, err := strconv.Atoi(r.Form["ly"][0])
 		if err != nil {
 			log.Fatalln("ly:", err)
 		}
+		//fmt.Printf("农历: %d年", ly)
+		//农历月
 		lm, err := strconv.Atoi(r.Form["lm"][0])
 		if err != nil {
 			log.Fatalln(err)
 		}
+		//fmt.Printf("农历: %d月\n", lm)
 		ld, err := strconv.Atoi(r.Form["ld"][0])
 		if err != nil {
 			log.Fatalln(err)
 		}
+		//时辰 子时1 丑时2 寅时3...
 		lh, err := strconv.Atoi(r.Form["lh"][0])
 		if err != nil {
-			log.Fatalln(err)
+			log.Fatalln("时辰异常:", err)
 		}
-		sx := r.Form["la"][0]
+		//fmt.Printf("时辰数字: %d", lh)
+		//生肖
+		sxs := r.Form["la"][0]
+		sxn, err := strconv.Atoi(sxs)
+		if err != nil {
+			log.Fatal("生肖异常:", err)
+		}
+		var sx string
+		var zhi = []string{"err", "鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊", "猴", "鸡", "狗", "猪"}
+		for index := 0; index <= 13; index++ {
+			if sxn == index {
+				sx = zhi[index]
+				break
+			}
+		}
+		//闰月
 		sb := r.Form["le"][0]
 		var leapb bool
 		if strings.EqualFold(sb, "t") {
@@ -120,10 +139,10 @@ func ccalWeb(w http.ResponseWriter, r *http.Request) {
 			leapb = false
 		}
 
-		//应答 (浏览器开发模式 Console看结果)
+		//fmt.Println(ly, lm, ld, lh, sx, leapb)
+		//应答
 		/////////////////////////////ccal农历基本纪年信息
-		b := leapb
-		_, s, l, g, jq := ccal.Input(ly, lm, ld, lh, sx, b)
+		_, s, l, g, jq := ccal.Input(ly, lm, ld, lh, sx, leapb)
 		var aliasM string
 		if l.Leapmb == true {
 			aliasM = "是"
@@ -147,13 +166,6 @@ func ccalWeb(w http.ResponseWriter, r *http.Request) {
 		hgzny := ganzhi.GZ纳音(hourgz)
 		nyinfo := fmt.Sprintf("干支纳音: %s %s %s %s\n", ygzny[aliasygz], mgzny[aliasmgz], dgzny[dgz], hgzny[hourgz])
 		jinianinfo := solarinfo + "<br />" + lunarinfo + "<br />" + gzinfo + "<br />" + nyinfo
-
-		/* 		jn := JN{
-			SR: solarinfo,
-			LR: lunarinfo,
-			GZ: gzinfo,
-			NY: nyinfo,
-		} */
 
 		/////////////////地母经
 		dmg := g.YearGan
@@ -240,20 +252,10 @@ func ccalWeb(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(resp)
 	}
 }
-
-func home(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "%s\n", "农历 协纪辩方 通书 择日")
-	if r.Method == "GET" {
-		t, _ := template.ParseFiles("index.html")
-		t.Execute(w, nil)
-	} else {
-		r.ParseForm()
-	}
-}
 func main() {
 	http.HandleFunc("/", home)
-	http.HandleFunc("/ccal", ccalWeb)        //设置访问的路由
-	err := http.ListenAndServe(":9090", nil) //设置监听的端口
+	http.HandleFunc("/ccal", ccalyj)
+	err := http.ListenAndServe(":9090", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
@@ -338,7 +340,7 @@ func (xjbf *ZR) BianWei() string {
 	if taohua != "" {
 		th = taohua
 	}
-	return "\n----孤辰寡宿 咸池桃花----\n" +
+	return "<br />" + "孤辰寡宿 咸池桃花" + "<br />" +
 		guc + " " + gus + " " + th
 }
 

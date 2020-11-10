@@ -5,7 +5,6 @@ go 1.15
 require (
 	github.com/Aquarian-Age/nongli v0.0.0
 	github.com/Aquarian-Age/ts v0.0.0
-	github.com/gin-gonic/gin v1.6.3
 )
 
 replace (

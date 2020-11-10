@@ -112,7 +112,7 @@
         <button id="listdayBtn" onclick="listday()">月历表</button>
         <button id="jqBtn" onclick="jq()">节气</button>
         <!--跳转择日页面-->
-        <a href="/ccal"> <button onchange="zeri()"><b>宜忌页面</b></button></a>
+        <a href="/ccal"> <button onchange="yj()"><b>宜忌页面</b></button></a>
     </div>
     <!-- 横线 -->
     <hr>
@@ -261,6 +261,10 @@
                     alert("月历表异常！");
                 }
             });
+        }
+        //跳转到宜忌页面
+        function yj(){
+            window.open("/ccal")
         }
     </script>
 

@@ -11,11 +11,10 @@
 <body>
     <h3 style="text-align: center;">择日</h3>
     <div style="text-align: center;">
-        <!--输入部分-->
         <form action="/" id="form1" method="POST" name="myform" onsubmit="return formonsub()">
             <!-- 下拉年 -->
             农历年(1601~3498): <input type="text" name="ly" style="width: 40px" /> 
-            <!-- 下拉农历月份 -->
+            <!-- 下拉月份 -->
             <select name="lm" >
                 <option value="1">正月(寅)</option>
 				<option value="2">二月(卯)</option>
@@ -63,7 +62,6 @@
 				<option value="29">廿九</option>
 				<option value="30">三十</option>
             </select>
-
             <!-- 时辰 子时1 丑时2 寅时3... -->
             <select name="lh">
 				<option value="1">子时(23~1)</option>
@@ -134,7 +132,7 @@
                 success: function(result) {
                    // console.log(result);
                     if (result.resultCode == 200) {
-                        alert("提交成功");
+                        //alert("提交成功");
                     };
                 }
             });
@@ -216,6 +214,8 @@
                 data: $('#form1').serialize(),
                 success: function(data) {
                     //通书 写入html内容
+                    var p = document.getElementById("showInfo")
+                    p.innerHTML= '待补充...';
                 },
                 error: function() {
                    // console.log("择日-通书异常!")

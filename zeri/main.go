@@ -12,7 +12,6 @@ import (
 
 	"github.com/Aquarian-Age/nongli/ccal"
 	"github.com/Aquarian-Age/nongli/dimu"
-	gz "github.com/Aquarian-Age/nongli/ganzhi"
 	"github.com/Aquarian-Age/nongli/lunar"
 	"github.com/Aquarian-Age/nongli/solar"
 	"github.com/Aquarian-Age/nongli/zeji"
@@ -65,13 +64,6 @@ type XJBF struct {
 	RS string `json:"tsRSZL"`  //通书 日时总览
 }
 
-type JN struct {
-	SR string //阳历纪年
-	LR string //农历纪年
-	GZ string //干支信息
-	NY string //纳因信息
-}
-
 //应答数据
 type Resp struct {
 	//JN
@@ -85,170 +77,17 @@ type Resp struct {
 	XJBF
 }
 
-func ccalWeb(w http.ResponseWriter, r *http.Request) {
-	//fmt.Fprintf(w, "%s\n", "农历 协纪辩方 通书 择日")
+//宜忌
+func ccalyj(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		t, _ := template.ParseFiles("ccal.html")
 		t.Execute(w, nil)
 	} else {
 		r.ParseForm()
-
-		ly, err := strconv.Atoi(r.Form["ly"][0])
-		if err != nil {
-			log.Fatalln("ly:", err)
-		}
-		lm, err := strconv.Atoi(r.Form["lm"][0])
-		if err != nil {
-			log.Fatalln(err)
-		}
-		ld, err := strconv.Atoi(r.Form["ld"][0])
-		if err != nil {
-			log.Fatalln(err)
-		}
-		lh, err := strconv.Atoi(r.Form["lh"][0])
-		if err != nil {
-			log.Fatalln(err)
-		}
-		//生肖
-		sxs := r.Form["la"][0]
-		fmt.Printf("sxs:%s\n", sxs)
-		sxn, err := strconv.Atoi(sxs)
-		if err != nil {
-			log.Fatal("生肖数字转换错误:", err)
-		}
-		var sx string
-		var zhi = gz.Zhi //子1 丑2 寅3....
-		for index := 0; index < 12; index++ {
-			if sxn == index {
-				sx = zhi[index]
-				break
-			}
-		}
-		fmt.Println("生肖:", sx)
-
-		//闰月
-		sb := r.Form["le"][0]
-		fmt.Printf("----->select-le: %v\n", sb)
-		var leapb bool
-		if strings.EqualFold(sb, "t") {
-			leapb = true
-		} else if strings.EqualFold(sb, "f") {
-			leapb = false
-		}
-
-		//应答 (浏览器开发模式 Console看结果)
-		/////////////////////////////ccal农历基本纪年信息
-		b := leapb
-		_, s, l, g, jq := ccal.Input(ly, lm, ld, lh, sx, b)
-		var aliasM string
-		if l.Leapmb == true {
-			aliasM = "是"
-		} else {
-			aliasM = "否"
-		}
-		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s\n", s.SYear, s.SMonth, s.SDay, s.SWeek)
-		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %s时(%d时)<br />本年是否有闰月:%s闰%d月\n", l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1], l.LaliasHour, l.LHour, aliasM, l.LeapMonth)
-		gzinfo := fmt.Sprintf("干支纪年: %s%s年-%s月-%s%s日-%s时\n",
-			g.YearGanM, g.YearZhiM, g.MonthGanZhiM, g.DayGanM, g.DayZhiM,
-			g.HourGanZhiM)
-		//纳音
-		aliasygz := fmt.Sprintf("%s%s", g.YearGanM, g.YearZhiM)
-		aliasmgz := g.MonthGanZhiM
-		dgz := fmt.Sprintf("%s%s", g.DayGanM, g.DayZhiM)
-		hourgz := g.HourGanZhiM
-
-		ygzny := ganzhi.GZ纳音(aliasygz)
-		mgzny := ganzhi.GZ纳音(aliasmgz)
-		dgzny := ganzhi.GZ纳音(dgz)
-		hgzny := ganzhi.GZ纳音(hourgz)
-		nyinfo := fmt.Sprintf("干支纳音: %s %s %s %s\n", ygzny[aliasygz], mgzny[aliasmgz], dgzny[dgz], hgzny[hourgz])
-		jinianinfo := solarinfo + "<br />" + lunarinfo + "<br />" + gzinfo + "<br />" + nyinfo
-
-		/////////////////地母经
-		dmg := g.YearGan
-		dmz := g.YearZhi
-		infodmj := dimu.DimuInfo(dmg, dmz)
-		dmjinfo := fmt.Sprintf("%s", infodmj)
-
-		///////////////24节气
-		jq24info := solar.ShowJieqi24(jq.Jqt, jq.Jq11t)
-
-		////////////////农历月历表
-		_, listday, _ := zeji.ListLunarDay(jq, l)
-
-		///////////小六壬择吉
-		iqs := zeji.ZhiSu(s, g)
-		starName := iqs.StarNames        //值宿名称
-		zhisus := fmt.Sprintf(iqs.ZhiSu) //当日值宿信息
-		fmt.Printf("二十八宿:\"%s\"\n %s\n", starName, zhisus)
-		//七煞判断
-		qsB := iqs.IsQiSha(s.SolarDayT, g.DayZhiM)
-		nx := zeji.AllNumber(g.YearZhi, l.LMonth, l.LDay, l.LHour)
-		n1b := nx.YiPan()
-		n2b := nx.ErPan()
-		n3b := nx.SanPan()
-		zeji := zeji.ShowResult(n1b, n2b, n3b, qsB)
-		fmt.Printf("择吉结果: %s\n", zeji)
-
-		//择日 协纪辩方书
-		hgz := convHourZhi(g.HourGanZhiM)
-		zr = &ZR{
-			syear:      s.SYear,
-			smonth:     s.SMonth,
-			sday:       s.SDay,
-			sweek:      s.SWeek,
-			stime:      s.SolarDayT,
-			lyear:      l.LYear,
-			lmonth:     l.LMonth,
-			lday:       l.LDay,
-			aliasyg:    g.YearGanM,
-			aliasyz:    g.YearZhiM,
-			aliasygz:   fmt.Sprintf("%s%s", g.YearGanM, g.YearZhiM),
-			aliasmgz:   g.MonthGanZhiM,
-			aliasday:   convRmc(l.LDay),
-			aliasmonth: convYmc(l.LMonth),
-			dgz:        fmt.Sprintf("%s%s", g.DayGanM, g.DayZhiM),
-			daygan:     g.DayGanM,
-			hourgz:     g.HourGanZhiM,
-			hourz:      hgz,
-			leapmb:     l.Leapmb,
-			ydx:        l.LYdxs,
-			aliasHour:  l.LaliasHour,
-			hour:       l.LHour,
-			leapmonth:  l.LeapMonth,
-		}
-		yeartab := zr.YearTab()           //协纪辩方 年表
-		djc, jcb := zr.JCM()              //协纪辩方 建除十二神煞(日)
-		monthtab := zr.MonthTab(djc, jcb) //协纪辩方 月表
-		daytab := zr.DayTab()             //协纪辩方 日表
-		bianwei := zr.BianWei()           //协纪辩方 辩伪+其他
-		rszl := zr.RSZL()                 //通书日时总览
-
-		xjbfs := XJBF{
-			NB: yeartab,
-			YB: monthtab,
-			RB: daytab,
-			BW: bianwei,
-			RS: rszl,
-		}
-
-		resp := Resp{
-			//JN:       jn,
-			JiNian:   jinianinfo,
-			Dmj:      dmjinfo,
-			Jq:       jq24info,
-			ListDay:  listday,
-			StarName: starName,
-			StarInfo: zhisus,
-			Zeji:     zeji,
-			XJBF:     xjbfs,
-		}
-		json.NewEncoder(w).Encode(resp)
 	}
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
-	//fmt.Fprintf(w, "%s\n", "农历 协纪辩方 通书 择日")
 	if r.Method == "GET" {
 		t, _ := template.ParseFiles("home.html")
 		t.Execute(w, nil)
@@ -260,13 +99,13 @@ func home(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatalln("ly:", err)
 		}
-		fmt.Printf("农历: %d年", ly)
+		//fmt.Printf("农历: %d年", ly)
 		//农历月
 		lm, err := strconv.Atoi(r.Form["lm"][0])
 		if err != nil {
 			log.Fatalln(err)
 		}
-		fmt.Printf("农历: %d月\n", lm)
+		//fmt.Printf("农历: %d月\n", lm)
 		ld, err := strconv.Atoi(r.Form["ld"][0])
 		if err != nil {
 			log.Fatalln(err)
@@ -276,7 +115,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatalln("时辰异常:", err)
 		}
-		fmt.Printf("时辰数字: %d", lh)
+		//fmt.Printf("时辰数字: %d", lh)
 		//生肖
 		sxs := r.Form["la"][0]
 		sxn, err := strconv.Atoi(sxs)
@@ -300,10 +139,10 @@ func home(w http.ResponseWriter, r *http.Request) {
 			leapb = false
 		}
 
-		fmt.Println(ly, lm, ld, lh, sx, leapb)
+		//fmt.Println(ly, lm, ld, lh, sx, leapb)
 		//应答
 		/////////////////////////////ccal农历基本纪年信息
-		_, s, l, g, jq := ccal.Input(ly, lm, ld, lh, sx, leapb) /* (2020, 4, 4, 4, "马", true) */ /*  */
+		_, s, l, g, jq := ccal.Input(ly, lm, ld, lh, sx, leapb)
 		var aliasM string
 		if l.Leapmb == true {
 			aliasM = "是"
@@ -415,8 +254,8 @@ func home(w http.ResponseWriter, r *http.Request) {
 }
 func main() {
 	http.HandleFunc("/", home)
-	http.HandleFunc("/ccal", ccalWeb)        //设置访问的路由
-	err := http.ListenAndServe(":9090", nil) //设置监听的端口
+	http.HandleFunc("/ccal", ccalyj)
+	err := http.ListenAndServe(":9090", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

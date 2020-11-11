@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://s3.pstatp.com/cdn/expire-1-M/jquery/3.2.1/jquery.min.js"></script>
+    <title>Document</title>
+</head>
+
+<body>
+    <!-- 阳历今日信息 -->
+    <div style="text-align: center;">
+        <button type="button" id="todayp" onclick="today()">阳历今日信息</button>
+		<a href="/"> <button onchange="home()"><b>返回主界面</b></button></a>
+	</div>
+    <hr>
+    <p id="page"></p>
+
+    <script>
+        //阳历今日信息
+        function today() {
+            $.ajax({
+                type: "POST",
+                dataType: "json",
+                url: "/today",
+                data: $('#todayp').serialize(),
+                success: function (data) {
+                    //console.log("today:", data.todayInfo)
+                    var p = document.getElementById("page");
+                    p.innerHTML = data.todayInfo;
+                },
+                error: function (data) {
+                   // console.log(data.todayInfo)
+                    alert("今日信息异常");
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

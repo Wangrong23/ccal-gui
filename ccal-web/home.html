@@ -113,6 +113,8 @@
         <button id="jqBtn" onclick="jq()">节气</button>
         <!--跳转择日页面-->
         <a href="/ccal"> <button onchange="yj()"><b>宜忌页面</b></button></a>
+        <!-- 今日信息 -->
+        <a href="/today"> <button onchange="today()"><b>今日信息</b></button></a>
     </div>
     <!-- 横线 -->
     <hr>
@@ -126,13 +128,19 @@
     <script type="text/javascript">
         //提交表单数据到服务器
         function formonsub() {
+            //表单验证
+            var x = document.forms["form1"]["ly"].value;
+            if (x ==null||x==""){
+                alert("输入农历年份时间可以直接查看 不用点提交^_^");
+                return false;
+            }
             $.ajax({
                 type: "POST",
                 url: "/",
                 data: $('#form1').serialize(),
-                success: function(result) {
-                   // console.log(result);
-                    if (result.resultCode == 200) {
+                success: function(data) {
+                   console.log("formdata=",data);
+                    if (data.resultCode == 200) {
                         //alert("提交成功");
                     };
                 }
@@ -149,7 +157,7 @@
                 success: function(data) {
                     //console.log(data.jinianInfo)
                     var p = document.getElementById("showInfo")
-                    p.innerHTML = data.jinianInfo
+                    p.innerHTML = data.jinianInfo;
                 },
                 error: function(data) {
                     alert("纪年异常！");
@@ -265,6 +273,10 @@
         //跳转到宜忌页面
         function yj(){
             window.open("/ccal")
+        }
+        //今日信息
+        function today(){
+            window.open("/today")
         }
     </script>
 

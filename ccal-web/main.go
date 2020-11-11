@@ -14,6 +14,8 @@ import (
 	"github.com/Aquarian-Age/nongli/dimu"
 	"github.com/Aquarian-Age/nongli/lunar"
 	"github.com/Aquarian-Age/nongli/solar"
+	"github.com/Aquarian-Age/nongli/today"
+	"github.com/Aquarian-Age/nongli/utils"
 	"github.com/Aquarian-Age/nongli/zeji"
 	ganzhi "github.com/Aquarian-Age/ts/gz"
 	ts "github.com/Aquarian-Age/ts/tongshu"
@@ -75,6 +77,7 @@ type Resp struct {
 	StarInfo string   `json:"starInfo"`     //值宿信息
 	Zeji     string   `json:"zejiInfo"`     //当日择吉信息
 	XJBF
+	Today string `json:"todayInfo"` //阳历今日信息
 }
 
 //宜忌
@@ -97,15 +100,19 @@ func home(w http.ResponseWriter, r *http.Request) {
 		//农历年
 		ly, err := strconv.Atoi(r.Form["ly"][0])
 		if err != nil {
+			//	ly = T.Year()
 			log.Fatalln("ly:", err)
 		}
 		//fmt.Printf("农历: %d年", ly)
 		//农历月
+
+		//正常表单数据
 		lm, err := strconv.Atoi(r.Form["lm"][0])
 		if err != nil {
 			log.Fatalln(err)
 		}
-		//fmt.Printf("农历: %d月\n", lm)
+
+		fmt.Printf("农历: %d月\n", lm)
 		ld, err := strconv.Atoi(r.Form["ld"][0])
 		if err != nil {
 			log.Fatalln(err)
@@ -245,6 +252,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 			StarInfo: zhisus,
 			Zeji:     zeji,
 			XJBF:     xjbfs,
+			//Today:    todayinfo,
 		}
 		//resp_json, _ := json.Marshal(resp)
 		//fmt.Println(string(resp_json))
@@ -252,13 +260,99 @@ func home(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(resp)
 	}
 }
+
+//今日信息
+type Today struct {
+	Ti string `json:"todayInfo"`
+}
+
+//今日信息
+func todayInfo(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		t, _ := template.ParseFiles("today.html")
+		t.Execute(w, nil)
+	} else {
+		r.ParseForm()
+		todayinfo := todayccal()
+		fmt.Println(todayinfo)
+		ti := Today{
+			Ti: todayinfo,
+		}
+		json.NewEncoder(w).Encode(ti)
+	}
+
+}
+
 func main() {
 	http.HandleFunc("/", home)
 	http.HandleFunc("/ccal", ccalyj)
+	http.HandleFunc("/today", todayInfo)
 	err := http.ListenAndServe(":9090", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
+}
+
+//默认当日结果
+func todayccal() (infoToday string) {
+	expectInfo, err := today.NewExpectInfo()
+	if err != nil {
+		log.Fatal("今日时间解析异常:", err)
+	}
+	///
+	var lm string
+	leapY := expectInfo.LeapY
+	leapM := expectInfo.LeapM
+	expectLeapD := expectInfo.ExpectleapD
+	leapB := expectInfo.LeapB
+
+	normalY := expectInfo.NormalY
+	normalM := expectInfo.NormalM
+	expectD := expectInfo.ExpectD
+	normalB := expectInfo.NormalB
+
+	//T := time.Now().Local()
+	h24 := T.Hour()
+	h := utils.Conv24Hto12H(h24)
+	sx := "猴"
+
+	if leapM != 0 && leapB == true { //闰月月份
+		err, s, l, g, _ := ccal.Input(leapY, leapM, expectLeapD, h, sx, leapB)
+		if err != nil {
+			log.Fatal()
+		}
+		if l.Leapmb == true {
+			lm = "是"
+		} else {
+			lm = "否"
+		}
+		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s", s.SYear, s.SMonth, s.SDay, s.SWeek)
+		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s%s时(%d时)",
+			l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1], l.LaliasHour, l.LHour)
+		gzinfo := fmt.Sprintf("干支纪年: %s%s年-%s月-%s%s日-%s时",
+			g.YearGanM, g.YearZhiM, g.MonthGanZhiM, g.DayGanM, g.DayZhiM, g.HourGanZhiM)
+		leapminfo := fmt.Sprintf("本年是否有闰月:%s-->闰%d月", lm, l.LeapMonth)
+		infoToday = solarinfo + "<br />" + lunarinfo + "<br />" + gzinfo + "<br />" + leapminfo
+
+	} else if normalM != 0 && normalB == false { //非闰月月份
+		err, s, l, g, _ := ccal.Input(normalY, normalM, expectD, h, sx, normalB)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if l.Leapmb == true {
+			lm = "是"
+		} else {
+			lm = "否"
+		}
+		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s", s.SYear, s.SMonth, s.SDay, s.SWeek)
+		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s%s时(%d时)",
+			l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1], l.LaliasHour, l.LHour)
+		gzinfo := fmt.Sprintf("干支纪年: %s%s年-%s月-%s%s日-%s时",
+			g.YearGanM, g.YearZhiM, g.MonthGanZhiM, g.DayGanM, g.DayZhiM, g.HourGanZhiM)
+		leapminfo := fmt.Sprintf("本年是否有闰月:%s-->闰%d月", lm, l.LeapMonth)
+		infoToday = solarinfo + "<br />" + lunarinfo + "<br />" + gzinfo + "<br />" + leapminfo
+	}
+	return
 }
 
 //协纪辩方 年表

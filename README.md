@@ -6,7 +6,7 @@
 
 - [在线体验](http://www.aquarianage.xyz:9090) 服务器到一月份结束
 
-![示例](./misc/2020-11-10.png)
+![wegGUI示例1](./misc/webGUI.png)
 
 - [B站视频地址](https://www.bilibili.com/video/BV1AV411a7a7/)
 

@@ -1,3 +1,3 @@
 #!/bin/bash
 
-go build -o zeri -ldflags="-s -w"
+go build -o ccal-web -ldflags="-s -w" main.go

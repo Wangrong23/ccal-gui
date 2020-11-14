@@ -66,6 +66,18 @@ type XJBF struct {
 	RS string `json:"tsRSZL"`  //通书 日时总览
 }
 
+//今日信息
+type Today struct {
+	Ti string `json:"todayInfo"` //今日纪年信息
+	About
+}
+
+//月将
+type YJ struct {
+	YjName   string `json:"yjName"`   //月将名称
+	StarName string `json:"starName"` //十二星宫
+}
+
 //应答数据
 type Resp struct {
 	//JN
@@ -76,8 +88,9 @@ type Resp struct {
 	StarName string   `json:"starnameInfo"` //当日值宿名称(28宿)
 	StarInfo string   `json:"starInfo"`     //值宿信息
 	Zeji     string   `json:"zejiInfo"`     //当日择吉信息
-	XJBF
-	Today string `json:"todayInfo"` //阳历今日信息
+	XJBF              //协纪辩方书
+	//Today    string   `json:"todayInfo"` //阳历今日信息
+	YJ //月将信息
 }
 
 //宜忌
@@ -100,13 +113,9 @@ func home(w http.ResponseWriter, r *http.Request) {
 		//农历年
 		ly, err := strconv.Atoi(r.Form["ly"][0])
 		if err != nil {
-			//	ly = T.Year()
 			log.Fatalln("ly:", err)
 		}
-		//fmt.Printf("农历: %d年", ly)
 		//农历月
-
-		//正常表单数据
 		lm, err := strconv.Atoi(r.Form["lm"][0])
 		if err != nil {
 			log.Fatalln(err)
@@ -122,7 +131,6 @@ func home(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatalln("时辰异常:", err)
 		}
-		//fmt.Printf("时辰数字: %d", lh)
 		//生肖
 		sxs := r.Form["la"][0]
 		sxn, err := strconv.Atoi(sxs)
@@ -145,9 +153,6 @@ func home(w http.ResponseWriter, r *http.Request) {
 		} else if strings.EqualFold(sb, "f") {
 			leapb = false
 		}
-
-		//fmt.Println(ly, lm, ld, lh, sx, leapb)
-		//应答
 		/////////////////////////////ccal农历基本纪年信息
 		_, s, l, g, jq := ccal.Input(ly, lm, ld, lh, sx, leapb)
 		var aliasM string
@@ -190,7 +195,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 		iqs := zeji.ZhiSu(s, g)
 		starName := iqs.StarNames        //值宿名称
 		zhisus := fmt.Sprintf(iqs.ZhiSu) //当日值宿信息
-		fmt.Printf("二十八宿:\"%s\"\n %s\n", starName, zhisus)
+		//fmt.Printf("二十八宿:\"%s\"\n %s\n", starName, zhisus)
 		//七煞判断
 		qsB := iqs.IsQiSha(s.SolarDayT, g.DayZhiM)
 		nx := zeji.AllNumber(g.YearZhi, l.LMonth, l.LDay, l.LHour)
@@ -198,7 +203,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 		n2b := nx.ErPan()
 		n3b := nx.SanPan()
 		zeji := zeji.ShowResult(n1b, n2b, n3b, qsB)
-		fmt.Printf("择吉结果: %s\n", zeji)
+		//fmt.Printf("择吉结果: %s\n", zeji)
 
 		//择日 协纪辩方书
 		hgz := convHourZhi(g.HourGanZhiM)
@@ -233,7 +238,6 @@ func home(w http.ResponseWriter, r *http.Request) {
 		daytab := zr.DayTab()             //协纪辩方 日表
 		bianwei := zr.BianWei()           //协纪辩方 辩伪+其他
 		rszl := zr.RSZL()                 //通书日时总览
-
 		xjbfs := XJBF{
 			NB: yeartab,
 			YB: monthtab,
@@ -241,9 +245,18 @@ func home(w http.ResponseWriter, r *http.Request) {
 			BW: bianwei,
 			RS: rszl,
 		}
+		////月将
+		jqt := ts.JQT(ly)
+		solarT := time.Date(s.SYear, time.Month(s.SMonth), s.SDay, 0, 0, 0, 0, time.UTC)
+		yjs := ts.NEWZRYLYueJiang(solarT, jqt)
+		yjname := fmt.Sprintf("月将: %s", yjs.Name)
+		star := fmt.Sprintf("十二宫: %s", yjs.Star)
+		yj := YJ{
+			YjName:   yjname,
+			StarName: star,
+		}
 
 		resp := Resp{
-			//JN:       jn,
 			JiNian:   jinianinfo,
 			Dmj:      dmjinfo,
 			Jq:       jq24info,
@@ -252,18 +265,51 @@ func home(w http.ResponseWriter, r *http.Request) {
 			StarInfo: zhisus,
 			Zeji:     zeji,
 			XJBF:     xjbfs,
-			//Today:    todayinfo,
+			YJ:       yj,
 		}
-		//resp_json, _ := json.Marshal(resp)
-		//fmt.Println(string(resp_json))
-		//io.WriteString(w, string(resp_json))
 		json.NewEncoder(w).Encode(resp)
 	}
 }
 
-//今日信息
-type Today struct {
-	Ti string `json:"todayInfo"`
+//关于...
+type About struct {
+	Ccal string
+	Data string
+	Xlr  string
+	Xjbf string
+	Ck   string
+	Me   string
+}
+
+func about() About {
+	ccal := "农历 择吉 可计算时间范围:1601～3498"
+	data := "农历数据来源: https://github.com/ytliu0/ChineseCalendar/raw/master/TDBtimes.txt"
+	xlr := "小六壬择吉 依据道家小六壬择法卷"
+	xjbf := "择日 依据协纪辩方书 时辰吉凶参考<<讲武全书兵占>>通书部分"
+	ck := "农历编算参考: https://ytliu0.github.io/ChineseCalendar/index_simp.html"
+	me := "作者 梁子: xiaoyaoke7630@sina.com"
+	return About{
+		Ccal: ccal,
+		Data: data,
+		Xlr:  xlr,
+		Xjbf: xjbf,
+		Ck:   ck,
+		Me:   me,
+	}
+}
+func main() {
+	http.HandleFunc("/", home)
+	http.HandleFunc("/ccal", ccalyj)
+	http.HandleFunc("/today", todayInfo)
+	err := http.ListenAndServe(":9090", nil)
+	if err != nil {
+		log.Fatal("ListenAndServe: ", err)
+	}
+}
+
+//一些Balabala.....s
+type BalaBala struct {
+	Lu string `json:"lu"` //禄
 }
 
 //今日信息
@@ -274,23 +320,22 @@ func todayInfo(w http.ResponseWriter, r *http.Request) {
 	} else {
 		r.ParseForm()
 		todayinfo := todayccal()
-		fmt.Println(todayinfo)
+		//关于
+		about := about()
 		ti := Today{
-			Ti: todayinfo,
+			Ti:    todayinfo,
+			About: about,
 		}
+		/* 		//////Balbala
+		   		ygz := r.Form["ygz"][0]
+		   		mgz := r.Form["ygz"][0]
+		   		dgz := r.Form["ygz"][0]
+		   		hgz := r.Form["ygz"][0]
+		   		fmt.Println("干支:", ygz, mgz, dgz, hgz) */
+
 		json.NewEncoder(w).Encode(ti)
 	}
 
-}
-
-func main() {
-	http.HandleFunc("/", home)
-	http.HandleFunc("/ccal", ccalyj)
-	http.HandleFunc("/today", todayInfo)
-	err := http.ListenAndServe(":9090", nil)
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
 }
 
 //默认当日结果
@@ -311,7 +356,6 @@ func todayccal() (infoToday string) {
 	expectD := expectInfo.ExpectD
 	normalB := expectInfo.NormalB
 
-	//T := time.Now().Local()
 	h24 := T.Hour()
 	h := utils.Conv24Hto12H(h24)
 	sx := "猴"
@@ -393,6 +437,9 @@ func (xjbf *ZR) MonthTab(djc string, jcb bool) string {
 	mgz := xjbf.aliasmgz
 	dgz := xjbf.dgz
 	lday := xjbf.lday
+	sy := xjbf.syear
+	sm := xjbf.smonth
+	sd := xjbf.sday
 	i = &ts.ZRYL{
 		YGZ:        ygz,
 		AliasMonth: m,
@@ -401,6 +448,9 @@ func (xjbf *ZR) MonthTab(djc string, jcb bool) string {
 		MGZ:        mgz,
 		DGZ:        dgz,
 		Lday:       lday,
+		Syear:      sy,
+		Smonth:     sm,
+		Sday:       sd,
 	}
 
 	return i.XJBF月表(djc, jcb)

@@ -2,110 +2,78 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://s3.pstatp.com/cdn/expire-1-M/jquery/3.2.1/jquery.min.js"></script>
-    <title>Document</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://s3.pstatp.com/cdn/expire-1-M/jquery/3.2.1/jquery.min.js"></script>
+	<title>今日纪年信息</title>
 </head>
 
 <body>
-    <!-- 阳历今日信息 -->
-    <div style="text-align: center;">
-        <button type="button" id="todayp" onclick="today()">点击显示今日信息</button>
-        <a href="/"> <button onchange="home()"><b>返回主界面</b></button></a>
-    </div>
+	<!-- 阳历今日信息 -->
+	<div style="text-align: center;">
+		<button type="button" id="todayid" onclick="today()">点击显示今日信息</button>
+		<a href="/"> <button onchange="home()"><b>返回主界面</b></button></a>
+		<a href="/jz60"><button onchange="jz60page()"><b>干支查询页面</b></button></a>
+	</div>
 
-    <div style="text-align: center;">
-        <br />
-        <form action="/today" id="formToday" method="POST" onclick="return select()">
-            年干支: <input type="text" name="ygz" style="width: 50px;height: 20px;">
-            月干支: <input type="text" name="mgz" style="width: 50px;height: 20px;">
-            日干支: <input type="text" name="dgz" style="width: 50px;height: 20px;">
-            时干支: <input type="text" name="hgz" style="width: 50px;height: 20px;">
-            月名称: <input type="text" name="ymc" style="width: 50px;height: 20px;">
-            <input type="submit" />
-        </form>
-    </div>
+	<hr>
+	<div style="text-align: center;">
+		<p id="page"></p>
+		<p id="selectP"></p>
+	</div>
+	<hr>
+	<!-- 关于 -->
+	<p id="show"></p>
 
-    <hr>
-    <div style="text-align: center;">
-        <p id="page"></p>
-        <p id="selectP"></p>
-    </div>
-    <hr>
-    <!-- 关于 -->
-    <p id="show"></p>
-    <script>
-        //阳历今日信息
-        function today() {
-            $.ajax({
-                type: "POST",
-                dataType: "json",
-                url: "/today",
-                data: $('#todayp').serialize(),
-                success: function (data) {
-                    //console.log("today:", data.todayInfo)
-                    console.log(typeof data.lu)
-                    var p = document.getElementById("page");
-                    p.innerHTML = data.todayInfo;
-                },
-                error: function (data) {
-                    // console.log(data.todayInfo)
-                    alert("今日信息异常");
-                }
-            });
-        }
-        //根据干支选择
-        function select() {
-            //表单验证
-            var ygz = document.forms["form1"]["ly"].value;
-            var mgz = document.forms["form1"]["ly"].value;
-            var dgz = document.forms["form1"]["ly"].value;
-            var hgz = document.forms["form1"]["ly"].value;
-            if (ygz == null || ygz == "" || mgz == null || mgz == "" || dgz == null || dgz == "" || hgz == null || hgz == "") {
-                alert("需要输入干支");
-                return false;
-            }
-            $.ajax({
-                type: "POST",
-                dataType: "json",
-                url: "/today",
-                data: $('#------').serialize(),
-                success: function (e) {
-                    console.log(e);
-                },
-                error: function (e) {
-                    console.log(e);
-                },
-            })
-        }
-        //跳转回主页
-        function home() {
-            window.open("/")
-        }
-    </script>
-    <!-- 关于 -->
-    <script>
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", "/today", true);//请求方式 请求地址 
-        xhr.send();
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState == 4 && xhr.status == 200) {
-                var fromserve = xhr.responseText;//从服务器传过来的 数据
-                var ps = JSON.parse(fromserve);//解析json数据
-               // console.log("serverjson:", ps);//打印调试数据
-                var ccal = ps.Ccal;
-                var data = ps.Data;
-                var xlr = ps.Xlr;
-                var xjbf = ps.Xjbf;
-                var ck = ps.Ck;
-                var me = ps.Me;
-                //写数据呈现到指定页面位置
-                var px = document.getElementById("show");
-                px.innerHTML = ccal + "<br />" + data + "<br />" + xlr + "<br />" + xjbf + "<br />" + ck + "<br />" + me;
-            };
-        };
-    </script>
+	<script>
+		//阳历今日信息
+		function today() {
+			$.ajax({
+				type: "POST",
+				dataType: "json",
+				url: "/today",
+				data: $('#todayid').serialize(),
+				success: function(data) {
+					// console.log(typeof data.lu)
+					var p = document.getElementById("page");
+					p.innerHTML = data.todayInfo;
+				},
+				error: function() {
+					alert("今日信息异常");
+				}
+			});
+		}
+		//跳转回主页
+		function home() {
+			window.open("/");
+		}
+		//干支查询页面
+		function jz60page() {
+			window.open("/jz60");
+		}
+	</script>
+
+	<!-- 关于 -->
+	<script>
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", "/today", true); //请求方式 请求地址
+		xhr.send();
+		xhr.onreadystatechange = function() {
+			if (xhr.readyState == 4 && xhr.status == 200) {
+				var fromserve = xhr.responseText; //从服务器传过来的 数据
+				var ps = JSON.parse(fromserve); //解析json数据
+				var ccal = ps.Ccal;
+				var data = ps.Data;
+				var xlr = ps.Xlr;
+				var xjbf = ps.Xjbf;
+				var ck = ps.Ck;
+				var me = ps.Me;
+				//写数据呈现到指定页面位置
+				var px = document.getElementById("show");
+				px.innerHTML = ccal + "<br />" + data + "<br />" + xlr + "<br />" + xjbf + "<br />" + ck + "<br />" + me;
+			};
+		};
+	</script>
 
 </body>
 

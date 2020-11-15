@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -70,6 +71,16 @@ type XJBF struct {
 type Today struct {
 	Ti string `json:"todayInfo"` //今日纪年信息
 	About
+}
+
+//关于...
+type About struct {
+	Ccal string
+	Data string
+	Xlr  string
+	Xjbf string
+	Ck   string
+	Me   string
 }
 
 //月将
@@ -271,16 +282,6 @@ func home(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-//关于...
-type About struct {
-	Ccal string
-	Data string
-	Xlr  string
-	Xjbf string
-	Ck   string
-	Me   string
-}
-
 func about() About {
 	ccal := "农历 择吉 可计算时间范围:1601～3498"
 	data := "农历数据来源: https://github.com/ytliu0/ChineseCalendar/raw/master/TDBtimes.txt"
@@ -301,15 +302,86 @@ func main() {
 	http.HandleFunc("/", home)
 	http.HandleFunc("/ccal", ccalyj)
 	http.HandleFunc("/today", todayInfo)
+	http.HandleFunc("/jz60", selectlist)
 	err := http.ListenAndServe(":9090", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}
 }
 
-//一些Balabala.....s
-type BalaBala struct {
-	Lu string `json:"lu"` //禄
+//年月日干支对应的数字
+type GZS struct {
+	Ygz, Mgz, Dgz, Hgz string
+	Tscy               string //太岁出游日
+	Tygr               string //太岁天乙贵人
+	TYDH               string //天乙贵人 日时论
+}
+
+//干支年月日下拉选择
+func selectlist(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		t, err := template.ParseFiles("jz60.html")
+		if err != nil {
+			log.Fatal("t-err:", err)
+		}
+		t.Execute(w, nil)
+	} else {
+		r.ParseForm()
+		y, err := strconv.Atoi(r.Form["jzy"][0]) //这里的jzy 是select的name值
+		if err != nil {
+			log.Fatal("y-err:", err)
+		}
+		m, err := strconv.Atoi(r.Form["jzm"][0])
+		if err != nil {
+			log.Fatal("m-err:", err)
+		}
+		d, err := strconv.Atoi(r.Form["jzd"][0])
+		if err != nil {
+			log.Fatal("d-err:", err)
+		}
+		h, err := strconv.Atoi(r.Form["jzh"][0])
+		if err != nil {
+			log.Fatal("h-err", err)
+		}
+		///fmt.Printf("y:%d m:%d d:%d h:%d \n", y, m, d, h)
+		///太岁出游日
+		var ygz, mgz, dgz, hgz string
+		for i := 0; i < 60; i++ {
+			if i == y {
+				ygz = jz60[i]
+			}
+			if i == m {
+				mgz = jz60[i]
+			}
+			if i == d {
+				dgz = jz60[i]
+				//	break
+			}
+			if i == h {
+				hgz = jz60[i]
+			}
+		}
+		fmt.Println(ygz, mgz, dgz, hgz)
+
+		太岁出游 := ts.XJBF太岁出游(dgz, jz60)
+		阳贵人, 阴贵人 := ts.XJBF太岁天乙贵人(ygz)
+		天乙贵人 := ts.XJBF天乙贵人(dgz, hgz)
+
+		gzs := GZS{
+			Ygz:  ygz,
+			Mgz:  mgz,
+			Dgz:  dgz,
+			Hgz:  hgz,
+			Tscy: 太岁出游,
+			Tygr: 阳贵人 + " " + 阴贵人,
+			TYDH: 天乙贵人,
+		}
+		js, err := json.Marshal(gzs)
+		if err != nil {
+			log.Fatal("js-err", err)
+		}
+		io.WriteString(w, string(js))
+	}
 }
 
 //今日信息
@@ -319,6 +391,7 @@ func todayInfo(w http.ResponseWriter, r *http.Request) {
 		t.Execute(w, nil)
 	} else {
 		r.ParseForm()
+		//今日阳历信息
 		todayinfo := todayccal()
 		//关于
 		about := about()
@@ -326,13 +399,6 @@ func todayInfo(w http.ResponseWriter, r *http.Request) {
 			Ti:    todayinfo,
 			About: about,
 		}
-		/* 		//////Balbala
-		   		ygz := r.Form["ygz"][0]
-		   		mgz := r.Form["ygz"][0]
-		   		dgz := r.Form["ygz"][0]
-		   		hgz := r.Form["ygz"][0]
-		   		fmt.Println("干支:", ygz, mgz, dgz, hgz) */
-
 		json.NewEncoder(w).Encode(ti)
 	}
 

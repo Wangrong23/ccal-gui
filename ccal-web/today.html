@@ -2,78 +2,78 @@
 <html lang="en">
 
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<script src="https://s3.pstatp.com/cdn/expire-1-M/jquery/3.2.1/jquery.min.js"></script>
-	<title>今日纪年信息</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://s3.pstatp.com/cdn/expire-1-M/jquery/3.2.1/jquery.min.js"></script>
+    <title>今日纪年信息</title>
 </head>
 
 <body>
-	<!-- 阳历今日信息 -->
-	<div style="text-align: center;">
-		<button type="button" id="todayid" onclick="today()">点击显示今日信息</button>
-		<a href="/"> <button onchange="home()"><b>返回主界面</b></button></a>
-		<a href="/jz60"><button onchange="jz60page()"><b>干支查询页面</b></button></a>
-	</div>
+    <!-- 阳历今日信息 -->
+    <div style="text-align: center;">
+        <button type="button" id="todayid" onclick="today()">点击显示今日信息</button>
+        <a href="/"> <button onchange="home()"><b>点击返回主界面</b></button></a>
+        <a href="/jz60"><button onchange="jz60page()"><b>点击跳转到干支查询页面</b></button></a>
+    </div>
 
-	<hr>
-	<div style="text-align: center;">
-		<p id="page"></p>
-		<p id="selectP"></p>
-	</div>
-	<hr>
-	<!-- 关于 -->
-	<p id="show"></p>
+    <hr>
+    <div style="text-align: center;">
+        <p id="page"></p>
+        <p id="selectP"></p>
+    </div>
+    <hr>
+    <!-- 关于 -->
+    <p id="show"></p>
 
-	<script>
-		//阳历今日信息
-		function today() {
-			$.ajax({
-				type: "POST",
-				dataType: "json",
-				url: "/today",
-				data: $('#todayid').serialize(),
-				success: function(data) {
-					// console.log(typeof data.lu)
-					var p = document.getElementById("page");
-					p.innerHTML = data.todayInfo;
-				},
-				error: function() {
-					alert("今日信息异常");
-				}
-			});
-		}
-		//跳转回主页
-		function home() {
-			window.open("/");
-		}
-		//干支查询页面
-		function jz60page() {
-			window.open("/jz60");
-		}
-	</script>
+    <script>
+        //阳历今日信息
+        function today() {
+            $.ajax({
+                type: "POST",
+                dataType: "json",
+                url: "/today",
+                data: $('#todayid').serialize(),
+                success: function (data) {
+                   // console.log(typeof data.lu)
+                    var p = document.getElementById("page");
+                    p.innerHTML = data.todayInfo;
+                },
+                error: function () {
+                    alert("今日信息异常");
+                }
+            });
+        }
+        //跳转回主页
+        function home() {
+            window.open("/");
+        }
+        //干支查询页面
+        function jz60page(){
+            window.open("/jz60");
+        }
+    </script>
 
-	<!-- 关于 -->
-	<script>
-		var xhr = new XMLHttpRequest();
-		xhr.open("POST", "/today", true); //请求方式 请求地址
-		xhr.send();
-		xhr.onreadystatechange = function() {
-			if (xhr.readyState == 4 && xhr.status == 200) {
-				var fromserve = xhr.responseText; //从服务器传过来的 数据
-				var ps = JSON.parse(fromserve); //解析json数据
-				var ccal = ps.Ccal;
-				var data = ps.Data;
-				var xlr = ps.Xlr;
-				var xjbf = ps.Xjbf;
-				var ck = ps.Ck;
-				var me = ps.Me;
-				//写数据呈现到指定页面位置
-				var px = document.getElementById("show");
-				px.innerHTML = ccal + "<br />" + data + "<br />" + xlr + "<br />" + xjbf + "<br />" + ck + "<br />" + me;
-			};
-		};
-	</script>
+    <!-- 关于 -->
+    <script>
+               var xhr = new XMLHttpRequest();
+               xhr.open("POST", "/today", true);//请求方式 请求地址
+               xhr.send();
+               xhr.onreadystatechange = function () {
+                   if (xhr.readyState == 4 && xhr.status == 200) {
+                       var fromserve = xhr.responseText;//从服务器传过来的 数据
+                       var ps = JSON.parse(fromserve);//解析json数据
+                       var ccal = ps.Ccal;
+                       var data = ps.Data;
+                       var xlr = ps.Xlr;
+                       var xjbf = ps.Xjbf;
+                       var ck = ps.Ck;
+                       var me = ps.Me;
+                       //写数据呈现到指定页面位置
+                       var px = document.getElementById("show");
+                       px.innerHTML = ccal + "<br />" + data + "<br />" + xlr + "<br />" + xjbf + "<br />" + ck + "<br />" + me;
+                   };
+               }; 
+    </script>
 
 </body>
 

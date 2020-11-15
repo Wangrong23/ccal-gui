@@ -315,6 +315,13 @@ type GZS struct {
 	Tscy               string //太岁出游日
 	Tygr               string //太岁天乙贵人
 	TYDH               string //天乙贵人 日时论
+	Luy                string //岁禄
+	Lum                string //建禄
+	Lud                string ///专禄(坐禄)
+	Luh                string //归禄
+	GuGua              string //孤辰寡宿
+	WuLu               string //无禄日（十恶大败日）
+	ChongRi, FuRi      string //重日 复日
 }
 
 //干支年月日下拉选择
@@ -361,20 +368,38 @@ func selectlist(w http.ResponseWriter, r *http.Request) {
 				hgz = jz60[i]
 			}
 		}
-		fmt.Println(ygz, mgz, dgz, hgz)
 
+		ymc := gztoYmc(mgz)
+		fmt.Println(ygz, mgz, dgz, hgz, ymc)
+		//////
 		太岁出游 := ts.XJBF太岁出游(dgz, jz60)
 		阳贵人, 阴贵人 := ts.XJBF太岁天乙贵人(ygz)
 		天乙贵人 := ts.XJBF天乙贵人(dgz, hgz)
+		岁禄 := ts.XJBF岁禄(dgz, ygz)
+		建禄 := ts.XJBF建禄(dgz, mgz)
+		专禄 := ts.XJBF专禄(dgz)
+		归禄 := ts.XJBF归禄(dgz, hgz)
+		孤辰, 寡宿 := ts.XJBF孤辰寡宿(ygz, mgz, dgz, hgz)
+		无禄 := ts.XJBF无禄日(dgz)
+		重日 := ts.XJBF重日(dgz)
+		复日 := ts.XJBF复日(ymc, dgz)
 
 		gzs := GZS{
-			Ygz:  ygz,
-			Mgz:  mgz,
-			Dgz:  dgz,
-			Hgz:  hgz,
-			Tscy: 太岁出游,
-			Tygr: 阳贵人 + " " + 阴贵人,
-			TYDH: 天乙贵人,
+			Ygz:     ygz,
+			Mgz:     mgz,
+			Dgz:     dgz,
+			Hgz:     hgz,
+			Tscy:    太岁出游,
+			Tygr:    阳贵人 + " " + 阴贵人,
+			TYDH:    天乙贵人,
+			Luy:     岁禄,
+			Lum:     建禄,
+			Lud:     专禄,
+			Luh:     归禄,
+			GuGua:   孤辰 + " " + 寡宿,
+			WuLu:    无禄,
+			ChongRi: 重日,
+			FuRi:    复日,
 		}
 		js, err := json.Marshal(gzs)
 		if err != nil {
@@ -596,6 +621,43 @@ func convYmc(n int) (alias string) {
 	for i := 0; i < len(ymc); i++ {
 		if i+1 == n {
 			alias = ymc[i]
+			break
+		}
+	}
+	return
+}
+
+func gztoYmc(gz string) (ym string) {
+	ymc := []string{"正", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"}
+	zhi := []string{"寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"}
+	for i := 0; i < len(zhi); i++ {
+		if strings.ContainsAny(gz, zhi[i]) {
+			switch i { //0正月
+			case 0:
+				ym = ymc[0]
+			case 1:
+				ym = ymc[1]
+			case 2:
+				ym = ymc[2]
+			case 3:
+				ym = ymc[3]
+			case 4:
+				ym = ymc[4]
+			case 5:
+				ym = ymc[5]
+			case 6:
+				ym = ymc[6]
+			case 7:
+				ym = ymc[7]
+			case 8:
+				ym = ymc[8]
+			case 9:
+				ym = ymc[9]
+			case 10:
+				ym = ymc[10]
+			case 11:
+				ym = ymc[11]
+			}
 			break
 		}
 	}

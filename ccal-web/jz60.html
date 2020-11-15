@@ -2,184 +2,256 @@
 <html lang="en">
 
 <head>
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<script src="https://s3.pstatp.com/cdn/expire-1-M/jquery/3.2.1/jquery.min.js"></script>
-	<title>干支查询</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://s3.pstatp.com/cdn/expire-1-M/jquery/3.2.1/jquery.min.js"></script>
+    <title>干支查询</title>
 </head>
 
 <body>
-	<!-- 下拉年月日时干支 -->
-	<div class="ymdlist">
-		<form action="/jz60" id="formid" method="POST" onsubmit="return jzform()">
-			<select name="jzy" id="jzidy">
-				<script>
-					//            <!-- 年干支 -->
-					var jz60 = new Array(
-						"甲子", "乙丑", "丙寅", "丁卯", "戊辰", "己巳", "庚午", "辛未", "壬申", "癸酉", //0-9  甲子旬
-						"甲戌", "乙亥", "丙子", "丁丑", "戊寅", "己卯", "庚辰", "辛巳", "壬午", "癸未", //10-19 甲戌旬
-						"甲申", "乙酉", "丙戌", "丁亥", "戊子", "己丑", "庚寅", "辛卯", "壬辰", "癸巳", //20-29 甲申旬
-						"甲午", "乙未", "丙申", "丁酉", "戊戌", "己亥", "庚子", "辛丑", "壬寅", "癸卯", //30-39 甲午旬
-						"甲辰", "乙巳", "丙午", "丁未", "戊申", "己酉", "庚戌", "辛亥", "壬子", "癸丑", //40-49 甲辰旬
-						"甲寅", "乙卯", "丙辰", "丁巳", "戊午", "己未", "庚申", "辛酉", "壬戌", "癸亥", //50-59 甲寅旬
-					);
-					//创建下拉列表
-					var jzSelect = document.getElementById("jzidy")
-					for (var i = 0; i < 60; i++) {
-						var opt = document.createElement("option");
-						opt.value = i;
-						opt.text = jz60[i] + "年";
-						jzSelect.appendChild(opt);
-					}
-					// document.form.appendChild(jzSelect);
-					document.body.appendChild(document.getElementById("formid"));
-				</script>
-			</select>
-			<!-- 月 -->
-			<select name="jzm" id="jzidm">
-				<script>
-					var jz60 = new Array(
-						"甲子", "乙丑", "丙寅", "丁卯", "戊辰", "己巳", "庚午", "辛未", "壬申", "癸酉", //0-9  甲子旬
-						"甲戌", "乙亥", "丙子", "丁丑", "戊寅", "己卯", "庚辰", "辛巳", "壬午", "癸未", //10-19 甲戌旬
-						"甲申", "乙酉", "丙戌", "丁亥", "戊子", "己丑", "庚寅", "辛卯", "壬辰", "癸巳", //20-29 甲申旬
-						"甲午", "乙未", "丙申", "丁酉", "戊戌", "己亥", "庚子", "辛丑", "壬寅", "癸卯", //30-39 甲午旬
-						"甲辰", "乙巳", "丙午", "丁未", "戊申", "己酉", "庚戌", "辛亥", "壬子", "癸丑", //40-49 甲辰旬
-						"甲寅", "乙卯", "丙辰", "丁巳", "戊午", "己未", "庚申", "辛酉", "壬戌", "癸亥", //50-59 甲寅旬
-					);
-					//创建下拉列表
-					var jzSelect = document.getElementById("jzidm");
-					for (var i = 0; i < 60; i++) {
-						var opt = document.createElement("option");
-						opt.value = i;
-						opt.text = jz60[i] + "月";
-						jzSelect.appendChild(opt);
-					}
-					// document.form.appendChild(jzSelect);
-					document.body.appendChild(document.getElementById("formid"));
-				</script>
-			</select>
-			<!-- 日 -->
-			<select name="jzd" id="jzidd">
-				<script>
-					var jz60 = new Array(
-						"甲子", "乙丑", "丙寅", "丁卯", "戊辰", "己巳", "庚午", "辛未", "壬申", "癸酉", //0-9  甲子旬
-						"甲戌", "乙亥", "丙子", "丁丑", "戊寅", "己卯", "庚辰", "辛巳", "壬午", "癸未", //10-19 甲戌旬
-						"甲申", "乙酉", "丙戌", "丁亥", "戊子", "己丑", "庚寅", "辛卯", "壬辰", "癸巳", //20-29 甲申旬
-						"甲午", "乙未", "丙申", "丁酉", "戊戌", "己亥", "庚子", "辛丑", "壬寅", "癸卯", //30-39 甲午旬
-						"甲辰", "乙巳", "丙午", "丁未", "戊申", "己酉", "庚戌", "辛亥", "壬子", "癸丑", //40-49 甲辰旬
-						"甲寅", "乙卯", "丙辰", "丁巳", "戊午", "己未", "庚申", "辛酉", "壬戌", "癸亥", //50-59 甲寅旬
-					);
-					//创建下拉列表
-					var jzSelect = document.getElementById("jzidd");
-					for (var i = 0; i < 60; i++) {
-						var opt = document.createElement("option");
-						opt.value = i;
-						opt.text = jz60[i] + "日";
-						jzSelect.appendChild(opt);
-					}
-					// document.form.appendChild(jzSelect);
-					document.body.appendChild(document.getElementById("formid"));
-				</script>
-			</select>
-			<!-- 时辰 -->
-			<select name="jzh" id="jzidh">
-				<script>
-					var jz60 = new Array(
-						"甲子", "乙丑", "丙寅", "丁卯", "戊辰", "己巳", "庚午", "辛未", "壬申", "癸酉", //0-9  甲子旬
-						"甲戌", "乙亥", "丙子", "丁丑", "戊寅", "己卯", "庚辰", "辛巳", "壬午", "癸未", //10-19 甲戌旬
-						"甲申", "乙酉", "丙戌", "丁亥", "戊子", "己丑", "庚寅", "辛卯", "壬辰", "癸巳", //20-29 甲申旬
-						"甲午", "乙未", "丙申", "丁酉", "戊戌", "己亥", "庚子", "辛丑", "壬寅", "癸卯", //30-39 甲午旬
-						"甲辰", "乙巳", "丙午", "丁未", "戊申", "己酉", "庚戌", "辛亥", "壬子", "癸丑", //40-49 甲辰旬
-						"甲寅", "乙卯", "丙辰", "丁巳", "戊午", "己未", "庚申", "辛酉", "壬戌", "癸亥", //50-59 甲寅旬
-					);
-					//创建下拉列表
-					var jzSelect = document.getElementById("jzidh");
-					for (var i = 0; i < 60; i++) {
-						var opt = document.createElement("option");
-						opt.value = i;
-						opt.text = jz60[i] + "时";
-						jzSelect.appendChild(opt);
-					}
-					//document.form.appendChild(jzSelect);
-					document.body.appendChild(document.getElementById("formid"));
-				</script>
-			</select>
-			<input type="submit" />
-		</form>
-	</div>
+    <!-- 下拉年月日时干支 -->
+    <div class="ymdlist">
+        <form action="/jz60" id="formid" method="POST" onsubmit="return jzform()">
+            <select name="jzy" id="jzidy">
+                <script>
+                    //            <!-- 年干支 -->
+                    var jz60 = new Array(
+                        "甲子", "乙丑", "丙寅", "丁卯", "戊辰", "己巳", "庚午", "辛未", "壬申", "癸酉", //0-9  甲子旬
+                        "甲戌", "乙亥", "丙子", "丁丑", "戊寅", "己卯", "庚辰", "辛巳", "壬午", "癸未", //10-19 甲戌旬
+                        "甲申", "乙酉", "丙戌", "丁亥", "戊子", "己丑", "庚寅", "辛卯", "壬辰", "癸巳", //20-29 甲申旬
+                        "甲午", "乙未", "丙申", "丁酉", "戊戌", "己亥", "庚子", "辛丑", "壬寅", "癸卯", //30-39 甲午旬
+                        "甲辰", "乙巳", "丙午", "丁未", "戊申", "己酉", "庚戌", "辛亥", "壬子", "癸丑", //40-49 甲辰旬
+                        "甲寅", "乙卯", "丙辰", "丁巳", "戊午", "己未", "庚申", "辛酉", "壬戌", "癸亥", //50-59 甲寅旬
+                    );
+                    //创建下拉列表
+                    var jzSelect = document.getElementById("jzidy")
+                    for (var i = 0; i < 60; i++) {
+                        var opt = document.createElement("option");
+                        opt.value = i;
+                        opt.text = jz60[i] + "年";
+                        jzSelect.appendChild(opt);
+                    }
+                    // document.form.appendChild(jzSelect);
+                    document.body.appendChild(document.getElementById("formid"));
+                </script>
+            </select>
+            <!-- 月 -->
+            <select name="jzm" id="jzidm">
+                <script>
+                    var jz60 = new Array(
+                        "甲子", "乙丑", "丙寅", "丁卯", "戊辰", "己巳", "庚午", "辛未", "壬申", "癸酉", //0-9  甲子旬
+                        "甲戌", "乙亥", "丙子", "丁丑", "戊寅", "己卯", "庚辰", "辛巳", "壬午", "癸未", //10-19 甲戌旬
+                        "甲申", "乙酉", "丙戌", "丁亥", "戊子", "己丑", "庚寅", "辛卯", "壬辰", "癸巳", //20-29 甲申旬
+                        "甲午", "乙未", "丙申", "丁酉", "戊戌", "己亥", "庚子", "辛丑", "壬寅", "癸卯", //30-39 甲午旬
+                        "甲辰", "乙巳", "丙午", "丁未", "戊申", "己酉", "庚戌", "辛亥", "壬子", "癸丑", //40-49 甲辰旬
+                        "甲寅", "乙卯", "丙辰", "丁巳", "戊午", "己未", "庚申", "辛酉", "壬戌", "癸亥", //50-59 甲寅旬
+                    );
+                    //创建下拉列表
+                    var jzSelect = document.getElementById("jzidm");
+                    for (var i = 0; i < 60; i++) {
+                        var opt = document.createElement("option");
+                        opt.value = i;
+                        opt.text = jz60[i] + "月";
+                        jzSelect.appendChild(opt);
+                    }
+                    // document.form.appendChild(jzSelect);
+                    document.body.appendChild(document.getElementById("formid"));
+                </script>
+            </select>
+            <!-- 日 -->
+            <select name="jzd" id="jzidd">
+                <script>
+                    var jz60 = new Array(
+                        "甲子", "乙丑", "丙寅", "丁卯", "戊辰", "己巳", "庚午", "辛未", "壬申", "癸酉", //0-9  甲子旬
+                        "甲戌", "乙亥", "丙子", "丁丑", "戊寅", "己卯", "庚辰", "辛巳", "壬午", "癸未", //10-19 甲戌旬
+                        "甲申", "乙酉", "丙戌", "丁亥", "戊子", "己丑", "庚寅", "辛卯", "壬辰", "癸巳", //20-29 甲申旬
+                        "甲午", "乙未", "丙申", "丁酉", "戊戌", "己亥", "庚子", "辛丑", "壬寅", "癸卯", //30-39 甲午旬
+                        "甲辰", "乙巳", "丙午", "丁未", "戊申", "己酉", "庚戌", "辛亥", "壬子", "癸丑", //40-49 甲辰旬
+                        "甲寅", "乙卯", "丙辰", "丁巳", "戊午", "己未", "庚申", "辛酉", "壬戌", "癸亥", //50-59 甲寅旬
+                    );
+                    //创建下拉列表
+                    var jzSelect = document.getElementById("jzidd");
+                    for (var i = 0; i < 60; i++) {
+                        var opt = document.createElement("option");
+                        opt.value = i;
+                        opt.text = jz60[i] + "日";
+                        jzSelect.appendChild(opt);
+                    }
+                    // document.form.appendChild(jzSelect);
+                    document.body.appendChild(document.getElementById("formid"));
+                </script>
+            </select>
+            <!-- 时辰 -->
+            <select name="jzh" id="jzidh">
+                <script>
+                    var jz60 = new Array(
+                        "甲子", "乙丑", "丙寅", "丁卯", "戊辰", "己巳", "庚午", "辛未", "壬申", "癸酉", //0-9  甲子旬
+                        "甲戌", "乙亥", "丙子", "丁丑", "戊寅", "己卯", "庚辰", "辛巳", "壬午", "癸未", //10-19 甲戌旬
+                        "甲申", "乙酉", "丙戌", "丁亥", "戊子", "己丑", "庚寅", "辛卯", "壬辰", "癸巳", //20-29 甲申旬
+                        "甲午", "乙未", "丙申", "丁酉", "戊戌", "己亥", "庚子", "辛丑", "壬寅", "癸卯", //30-39 甲午旬
+                        "甲辰", "乙巳", "丙午", "丁未", "戊申", "己酉", "庚戌", "辛亥", "壬子", "癸丑", //40-49 甲辰旬
+                        "甲寅", "乙卯", "丙辰", "丁巳", "戊午", "己未", "庚申", "辛酉", "壬戌", "癸亥", //50-59 甲寅旬
+                    );
+                    //创建下拉列表
+                    var jzSelect = document.getElementById("jzidh");
+                    for (var i = 0; i < 60; i++) {
+                        var opt = document.createElement("option");
+                        opt.value = i;
+                        opt.text = jz60[i] + "时";
+                        jzSelect.appendChild(opt);
+                    }
+                    //document.form.appendChild(jzSelect);
+                    document.body.appendChild(document.getElementById("formid"));
+                </script>
+            </select>
+            <input type="submit" />
+        </form>
+    </div>
 
-	<div style="text-align: center;">
-		<a href="/"> <button onchange="home()"><b>返回主界面</b></button></a>
-		<a href="/today"> <button onchange="today()"><b>今日信息</b></button></a>
-	</div>
+    <div style="text-align: center;">
+        <a href="/"> <button onchange="home()"><b>点击返回主界面</b></button></a>
+        <a href="/today"> <button onchange="today()"><b>点击跳转到今日信息页面</b></button></a>
+    </div>
 
-	<div id="" style="text-align: center;">
-		<button id="btn1" onclick="tscy()">太岁出游日</button>
-		<p id="p1"></p>
-		<button id="btn2" onclick="tygr()">天乙贵人</button>
-		<p id="p2"></p>
-	</div>
+    <!-- 查询按钮 -->
+    <div id="" style="text-align: center;">
+        <button id="btn1" onclick="tscy()">太岁出游日</button>
+        <button id="btn2" onclick="tygr()">天乙贵人</button>
+        <button id="btn3" onclick="lu()">禄</button>
+        <button id="btn4" onclick="gugua()">孤辰寡宿</button>
+        <button id="btn5" onclick="wulu()">无禄日</button>
+        <button id="btn6" onclick="chongri()">重日 复日</button>
+    </div>
 
-	<script>
-		//ajax异步
-		function jzform() {
-			$.ajax({
-				type: "post",
-				url: "/jz60",
-				data: $('#formid').serialize(),
-				success: function(e) {
-					//  console.log(e);//后台服务器返回来的值
-				}
-			});
-			return false;
-		}
-		//太岁出游日
-		function tscy() {
-			$.ajax({
-				type: "post",
-				url: "/jz60",
-				data: $('#formid').serialize(),
-				success: function(data) {
-					// console.log(data);
-					var js = JSON.parse(data);
-					var p = document.getElementById("p1");
-					if (js.Tscy == "") {
-						p.innerHTML = "本日太岁不出游";
-					} else {
-						p.innerHTML = js.Tscy;
-					}
-				}
-			});
-		}
-		//天乙贵人
-		function tygr() {
-			$.ajax({
-				type: "post",
-				url: "/jz60",
-				data: $('#formid').serialize(),
-				success: function(data) {
-					// console.log(data);
-					var js = JSON.parse(data);
-					var p = document.getElementById("p2");
-					var tygr = js.Tygr //天乙贵人 岁论
-					var tydh = js.TYDH; //天乙贵人 日时论
-					if (tydh == "") {
-						p.innerHTML = js.Ygz + "年 " + tygr
-					} else {
-						p.innerHTML = js.Ygz + "年 " + tygr + "<br />" + js.Dgz + "日" + js.Hgz + "时 " + tydh;
-					}
-				}
-			});
-		}
-		//跳转回主页
-		function home() {
-			window.open("/");
-		}
-		//返回今日信息
-		function today() {
-			window.open("/today");
-		}
-	</script>
+    <!-- 显示信息 -->
+    <div style="width: auto">
+        <p id="p1"></p>
+        <p id="p2"></p>
+        <p id="p3"></p>
+        <p id="p4"></p>
+        <p id="p5"></p>
+        <p id="p6"></p>
+    </div>
+
+    <script>
+        //ajax异步
+        function jzform() {
+            $.ajax({
+                type: "post",
+                url: "/jz60",
+                data: $('#formid').serialize(),
+                success: function (e) {
+                    //  console.log(e);//后台服务器返回来的值
+                }
+            });
+            return false;
+        }
+        //太岁出游日
+        function tscy() {
+            $.ajax({
+                type: "post",
+                url: "/jz60",
+                data: $('#formid').serialize(),
+                success: function (data) {
+                    // console.log(data);
+                    var js = JSON.parse(data);
+                    var p = document.getElementById("p1");
+                    if (js.Tscy == "") {
+                        p.innerHTML = "本日太岁不出游";
+                    } else {
+                        p.innerHTML = js.Tscy;
+                    }
+                }
+            });
+        }
+        //天乙贵人
+        function tygr() {
+            $.ajax({
+                type: "post",
+                url: "/jz60",
+                data: $('#formid').serialize(),
+                success: function (data) {
+                    // console.log(data);
+                    var js = JSON.parse(data);
+                    var p = document.getElementById("p2");
+                    var tygr = js.Tygr//天乙贵人 岁论
+                    var tydh = js.TYDH;//天乙贵人 日时论
+                    if (tydh == "") {
+                        p.innerHTML = js.Ygz + "年 " + tygr
+                    } else {
+                        p.innerHTML = js.Ygz + "年 " + tygr + "<br />" + js.Dgz + "日" + js.Hgz + "时 " + tydh;
+                    }
+                }
+            });
+        }
+        //禄
+        function lu() {
+            $.ajax({
+                type: "post",
+                url: "/jz60",
+                data: $('#formid').serialize(),
+                success: function (data) {
+                    console.log(data);
+                    var js = JSON.parse(data);
+                    var p = document.getElementById("p3");
+                    p.innerHTML = js.Luy + "<br />" + js.Lum + "<br />" + js.Lud + "<br />" + js.Luh;
+                }
+            });
+        }
+        //孤辰寡宿
+        function gugua() {
+            $.ajax({
+                type: "post",
+                url: "/jz60",
+                data: $('#formid').serialize(),
+                success: function (data) {
+                    var js = JSON.parse(data);
+                    var p = document.getElementById("p4");
+                    p.innerHTML = js.GuGua;
+                }
+            })
+        }
+        //无禄日
+        // https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Errors/JSON_bad_parse
+        function wulu() {
+            $.ajax({
+                type: "post",
+                url: "/jz60",
+                data: $('#formid').serialize(),
+                success: function (data) {
+                    //console.log(js.WuLu);
+                    var js = JSON.parse(data);
+                    var p = document.getElementById("p5");
+                    if (js.WuLu != "") {
+                        p.innerHTML = js.Dgz + "日: " + js.WuLu;
+                    }
+                }
+            })
+        }
+        //重日 复日
+        function chongri(){
+            $.ajax({
+                type: "post",
+                url: "/jz60",
+                data: $('#formid').serialize(),
+                success: function (data) {
+                    var js = JSON.parse(data);
+                    var p = document.getElementById("p6");
+                    if (js.ChongRi != ""||js.FuRi!="") {
+                        p.innerHTML = js.Dgz + "日: " + js.ChongRi+" " +js.FuRi;;
+                    }
+                }
+            })
+        }
+        //跳转回主页
+        function home() {
+            window.open("/");
+        }
+        //返回今日信息
+        function today() {
+            window.open("/today");
+        }
+    </script>
 </body>
 
 </html>

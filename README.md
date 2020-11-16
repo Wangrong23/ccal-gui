@@ -4,9 +4,7 @@
 - zeri 一个简单的择日GUI [duit](https://github.com/mjl-/duit)
 - ccal-web 简单的web页面 择日+小六壬择吉
 
-- [在线体验](http://www.aquarianage.xyz:9090) 服务器到一月份结束
-
-![wegGUI示例1](./misc/webGUI.png)
+- [在线体验](http://www.aquarianage.xyz:9090) 服务器到3月份结束
 
 - [B站视频地址](https://www.bilibili.com/video/BV1AV411a7a7/)
 

@@ -11,8 +11,9 @@
 <body>
     <!-- 下拉年月日时干支 -->
     <div class="ymdlist">
-        <form action="/jz60" id="formid" method="POST" onsubmit="return jzform()">
-            <select name="jzy" id="jzidy">
+        <form action="/jz60" style="text-align: center; height: 30px;" id="formid" method="POST"
+            onsubmit="return jzform()">
+            <select name="jzy" id="jzidy" style="height: 0.8cm;">
                 <script>
                     //            <!-- 年干支 -->
                     var jz60 = new Array(
@@ -36,7 +37,7 @@
                 </script>
             </select>
             <!-- 月 -->
-            <select name="jzm" id="jzidm">
+            <select name="jzm" id="jzidm" style="height: 0.8cm;">
                 <script>
                     var jz60 = new Array(
                         "甲子", "乙丑", "丙寅", "丁卯", "戊辰", "己巳", "庚午", "辛未", "壬申", "癸酉", //0-9  甲子旬
@@ -59,7 +60,7 @@
                 </script>
             </select>
             <!-- 日 -->
-            <select name="jzd" id="jzidd">
+            <select name="jzd" id="jzidd" style="height: 0.8cm;">
                 <script>
                     var jz60 = new Array(
                         "甲子", "乙丑", "丙寅", "丁卯", "戊辰", "己巳", "庚午", "辛未", "壬申", "癸酉", //0-9  甲子旬
@@ -82,7 +83,7 @@
                 </script>
             </select>
             <!-- 时辰 -->
-            <select name="jzh" id="jzidh">
+            <select name="jzh" id="jzidh" style="height: 0.8cm;">
                 <script>
                     var jz60 = new Array(
                         "甲子", "乙丑", "丙寅", "丁卯", "戊辰", "己巳", "庚午", "辛未", "壬申", "癸酉", //0-9  甲子旬
@@ -104,24 +105,23 @@
                     document.body.appendChild(document.getElementById("formid"));
                 </script>
             </select>
-            <input type="submit" />
+            <input type="submit" style="width: 70px; height: 0.8cm;" />
         </form>
     </div>
-
-    <div style="text-align: center;">
-        <a href="/"> <button onchange="home()"><b>点击返回主界面</b></button></a>
-        <a href="/today"> <button onchange="today()"><b>点击跳转到今日信息页面</b></button></a>
-    </div>
-
-    <!-- 查询按钮 -->
-    <div id="" style="text-align: center;">
-        <button id="btn1" onclick="tscy()">太岁出游日</button>
-        <button id="btn2" onclick="tygr()">天乙贵人</button>
-        <button id="btn3" onclick="lu()">禄</button>
-        <button id="btn4" onclick="gugua()">孤辰寡宿</button>
-        <button id="btn5" onclick="wulu()">无禄日</button>
-        <button id="btn6" onclick="chongri()">重日 复日</button>
-    </div>
+    <hr>
+<!-- 点击按钮 -->
+    <tr>
+        <td>
+            <button id="btn1" onclick="tscy()">太岁出游日</button>
+            <button id="btn2" onclick="tygr()">天乙贵人</button>
+            <button id="btn3" onclick="lu()">禄</button>
+            <button id="btn4" onclick="gugua()">孤辰寡宿</button>
+            <button id="btn5" onclick="wulu()">无禄日</button>
+            <button id="btn6" onclick="chongri()">重日 复日</button>
+            <a href="/"> <button onchange="home()"><b>点击返回主界面</b></button></a>
+            <a href="/today"> <button onchange="today()"><b>点击跳转到今日信息页面</b></button></a>
+        </td>
+    </tr>
 
     <!-- 显示信息 -->
     <div style="width: auto">
@@ -229,7 +229,7 @@
             })
         }
         //重日 复日
-        function chongri(){
+        function chongri() {
             $.ajax({
                 type: "post",
                 url: "/jz60",
@@ -237,8 +237,8 @@
                 success: function (data) {
                     var js = JSON.parse(data);
                     var p = document.getElementById("p6");
-                    if (js.ChongRi != ""||js.FuRi!="") {
-                        p.innerHTML = js.Dgz + "日: " + js.ChongRi+" " +js.FuRi;;
+                    if (js.ChongRi != "" || js.FuRi != "") {
+                        p.innerHTML = js.Dgz + "日: " + js.ChongRi + " " + js.FuRi;;
                     }
                 }
             })

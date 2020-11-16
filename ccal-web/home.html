@@ -12,11 +12,11 @@
 <body>
     <h3 style="text-align: center;">择日</h3>
     <div style="text-align: center;">
-        <form action="/" id="form1" method="POST" name="myform" onsubmit="return formonsub()">
+        <form action="/"  style="text-align: center; height: 30px;" id="form1" method="POST" name="myform" onsubmit="return formonsub()">
             <!-- 下拉年 -->
             <!-- 农历年(1601~3498): <input type="text" name="ly" style="width: 40px" /> -->
             <!-- 创建下拉年数字 -->
-            <select name="ly" id="yearid">
+            <select name="ly" id="yearid" style="height: 0.8cm;">
                 <script>
                     var d = new Date();
                     var year = d.getFullYear();//当前年数字
@@ -37,7 +37,7 @@
                 </script>
             </select>
             <!-- 下拉月份 -->
-            <select name="lm">
+            <select name="lm" style="height: 0.8cm;">
                 <option value="1">正月(寅)</option>
                 <option value="2">二月(卯)</option>
                 <option value="3">三月(辰)</option>
@@ -52,7 +52,7 @@
                 <option value="12">十二月(丑)</option>
             </select>
             <!-- 下拉日期 -->
-            <select name="ld">
+            <select name="ld" style="height: 0.8cm;">
                 <option value="1">初一</option>
                 <option value="2">初二</option>
                 <option value="3">初三</option>
@@ -85,7 +85,7 @@
                 <option value="30">三十</option>
             </select>
             <!-- 时辰 子时1 丑时2 寅时3... -->
-            <select name="lh">
+            <select name="lh" style="height: 0.8cm;">
                 <option value="1">子时(23~1)</option>
                 <option value="2">丑时(1~3)</option>
                 <option value="3">寅时(3~5)</option>
@@ -100,7 +100,7 @@
                 <option value="12">亥时(21~23)</option>
             </select>
             <!--生肖选择-->
-            <select name="la">
+            <select name="la" style="height: 0.8cm;">
                 <option value="1">子水鼠</option>
                 <option value="2">丑土牛</option>
                 <option value="3">寅木虎</option>
@@ -115,32 +115,36 @@
                 <option value="12">亥水猪</option>
             </select>
             <!--闰月选择-->
-            <select name="le">
+            <select name="le" style="height: 0.8cm;">
                 <option value="f">非闰月</option>
                 <option value="t">闰月</option>
             </select>
-            <input type="submit" />
+            <input type="submit" style="height: 0.8cm;" />
         </form>
-    </div>
-
-    <!--点击按钮 -->
-    <div style="text-align: center;">
-        <button id="jnBtn" onclick="jinian()">纪年信息</button>
-        <button id="dmjBtn" onclick="dmj()">地母经</button>
-        <button id="zejiBtn" onclick="zeji()">小六壬择吉</button>
-        <button id="xjbfBtn" onclick="xjbfs()">择日(协纪辩方书)</button>
-        <button id="tongshuBtn" onclick="tongshu()">择日(通书)</button>
-        <button id="listdayBtn" onclick="listday()">月历表</button>
-        <button id="jqBtn" onclick="jq()">节气</button>
-        <!--跳转择日页面-->
-        <a href="/ccal"> <button onchange="yj()"><b>宜忌页面</b></button></a>
-        <!-- 今日信息 -->
-        <a href="/today"> <button onchange="today()"><b>今日信息</b></button></a>
-        <!-- 干支查询页面 -->
-        <a href="/jz60"><button onchange="jz60page()"><b>干支查询页面</b></button></a>
     </div>
     <!-- 横线 -->
     <hr>
+    <!--点击按钮 -->
+    <div style="text-align: center;">
+        <tr>
+            <td>
+                <button id="jnBtn" onclick="jinian()">纪年信息</button>
+                <button id="dmjBtn" onclick="dmj()">地母经</button>
+                <button id="zejiBtn" onclick="zeji()">小六壬择吉</button>
+                <button id="xjbfBtn" onclick="xjbfs()">择日(协纪辩方书)</button>
+                <button id="tongshuBtn" onclick="tongshu()">择日(通书)</button>
+                <button id="listdayBtn" onclick="listday()">月历表</button>
+                <button id="jqBtn" onclick="jq()">节气</button>
+                <!--跳转择日页面-->
+                <a href="/ccal"> <button onchange="yj()"><b>宜忌页面</b></button></a>
+                <!-- 今日信息 -->
+                <a href="/today"> <button onchange="today()"><b>今日信息</b></button></a>
+                <!-- 跳转干支查询页面 -->
+                <a href="/jz60"><button onchange="jz60page()"><b>干支查询页面</b></button></a>
+            </td>
+        </tr>
+    </div>
+
     <!-- 显示点击按钮对应的信息 纪年信息 地母经 小六壬择吉共用一个显示页面 -->
     <p id="showInfo"></p>
     <!-- 月历表 单独显示 -->

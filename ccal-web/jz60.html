@@ -109,15 +109,21 @@
         </form>
     </div>
     <hr>
-<!-- 点击按钮 -->
+    <!-- 点击按钮 -->
     <tr>
         <td>
+            <button id="jc" onclick="jc()" title="平成开危最吉 定除次吉 破大凶">日建除</button>
+            <button id="hhd" onclick="hhd()">黄黑</button>
             <button id="btn1" onclick="tscy()">太岁出游日</button>
-            <button id="btn2" onclick="tygr()">天乙贵人</button>
+            <button id="btn2" onclick="tygr()" title="丑未为天乙贵人出入之门 辰戌为天罡河魁贵人不临">天乙贵人</button>
             <button id="btn3" onclick="lu()">禄</button>
             <button id="btn4" onclick="gugua()">孤辰寡宿</button>
             <button id="btn5" onclick="wulu()">无禄日</button>
             <button id="btn6" onclick="chongri()">重日 复日</button>
+            <button id="btn7" onclick="yiju()">移居吉日</button>
+            <button id="btn8" onclick="tanbing()">忌探病日</button>
+            <button id="btn9" onclick="xianchi()">咸池</button>
+            <button id="btn10" onclick="shangshuo()" title="阳年以年干加寅 顺数至亥 阴年以年干加丑顺数至巳">上朔日</button>
             <a href="/"> <button onchange="home()"><b>点击返回主界面</b></button></a>
             <a href="/today"> <button onchange="today()"><b>点击跳转到今日信息页面</b></button></a>
         </td>
@@ -125,12 +131,18 @@
 
     <!-- 显示信息 -->
     <div style="width: auto">
+        <p id="jcp"></p>
+        <p id="hhdp"></p>
         <p id="p1"></p>
         <p id="p2"></p>
         <p id="p3"></p>
         <p id="p4"></p>
         <p id="p5"></p>
         <p id="p6"></p>
+        <p id="p7"></p>
+        <p id="p8"></p>
+        <p id="p9"></p>
+        <p id="p10" title="忌 宴会 嫁娶 上官 远行"></p>
     </div>
 
     <script>
@@ -145,6 +157,83 @@
                 }
             });
             return false;
+        }
+        //日建除
+        function jc() {
+            $.ajax({
+                type: "post",
+                url: "/jz60",
+                data: $('#formid').serialize(),
+                success: function (data) {
+                    var js = JSON.parse(data);
+                    var p = document.getElementById("jcp");
+                    //p.innerHTML = js.Mgz + "月" + js.Dgz + "日: "+js.JC;
+                    switch (js.JC) {
+                        case "建":
+                            var s = "建为岁君 为元神 为吉凶众神之首 可坐不可向";
+                            p.innerHTML = js.Mgz + "月" + js.Dgz + "日: " + js.JC + "<br>" + s;
+                            break;
+                        case "除":
+                            var s = "除为四利太阳小吉";
+                            p.innerHTML = js.Mgz + "月" + js.Dgz + "日: " + js.JC + "<br>" + s;
+                            break;
+                        case "满":
+                            var s = "满为土瘟为四利丧门 又为天富小吉";
+                            p.innerHTML = js.Mgz + "月" + js.Dgz + "日: " + js.JC + "<br>" + s;
+                            break;
+                        case "平":
+                            var s = "平为三台又为土曲大吉";
+                            p.innerHTML = js.Mgz + "月" + js.Dgz + "日: " + js.JC + "<br>" + s;
+                            break;
+                        case "定":
+                            var s = "定为岁三合为显星吉 又为地管符畜官次凶";
+                            p.innerHTML = js.Mgz + "月" + js.Dgz + "日: " + js.JC + "<br>" + s;
+                            break;
+                        case "执":
+                            var s = "执为四利之死符 又为小耗凶";
+                            p.innerHTML = js.Mgz + "月" + js.Dgz + "日: " + js.JC + "<br>" + s;
+                            break;
+                        case "破":
+                            var s = "破为岁破为大耗大凶";
+                            p.innerHTML = js.Mgz + "月" + js.Dgz + "日: " + js.JC + "<br>" + s;
+                            break;
+                        case "危":
+                            var s = "危为极富星为谷将星为四利龙德吉";
+                            p.innerHTML = js.Mgz + "月" + js.Dgz + "日: " + js.JC + "<br>" + s;
+                            break;
+                        case "成":
+                            var s = "成为三合吉 又为飞廉 又为四立白虎小凶";
+                            p.innerHTML = js.Mgz + "月" + js.Dgz + "日: " + js.JC + "<br>" + s;
+                            break;
+                        case "收":
+                            var s = "收为四利福德小吉 又为八座小凶";
+                            p.innerHTML = js.Mgz + "月" + js.Dgz + "日: " + js.JC + "<br>" + s;
+                            break;
+                        case "开":
+                            var s = "开为青龙太阴为主生气华盖上吉 又为四利弔(diao)客小凶";
+                            p.innerHTML = js.Mgz + "月" + js.Dgz + "日: " + js.JC + "<br>" + s;
+                            break;
+                        case "闭":
+                            var s = "闭为病符凶";
+                            p.innerHTML = js.Mgz + "月" + js.Dgz + "日: " + js.JC + "<br>" + s;
+                            break;
+                    }
+                }
+            })
+        }
+        //黄黑道
+        function hhd() {
+            $.ajax({
+                type: "post",
+                url: "/jz60",
+                data: $('#formid').serialize(),
+                success: function (data) {
+                    var js = JSON.parse(data);
+                    var p = document.getElementById("hhdp");
+                    p.innerHTML = js.Mgz + "月" + js.Dgz + "日 黄黑: " + js.Dhh +
+                        "<br>" + js.Dgz + "日" + js.Hgz + "时 黄黑: " + js.Hhh;
+                }
+            })
         }
         //太岁出游日
         function tscy() {
@@ -238,7 +327,67 @@
                     var js = JSON.parse(data);
                     var p = document.getElementById("p6");
                     if (js.ChongRi != "" || js.FuRi != "") {
-                        p.innerHTML = js.Dgz + "日: " + js.ChongRi + " " + js.FuRi;;
+                        p.innerHTML = js.Dgz + "日: " + js.ChongRi + " " + js.FuRi;
+                    }
+                }
+            })
+        }
+        //移居吉日
+        function yiju() {
+            $.ajax({
+                type: "post",
+                url: "/jz60",
+                data: $('#formid').serialize(),
+                success: function (data) {
+                    var js = JSON.parse(data);
+                    var p = document.getElementById("p7");
+                    if (js.YiJu != "") {
+                        p.innerHTML = js.Dgz + "日: " + js.YiJu;
+                    }
+                }
+            })
+        }
+        //忌探病日
+        function tanbing() {
+            $.ajax({
+                type: "post",
+                url: "/jz60",
+                data: $('#formid').serialize(),
+                success: function (data) {
+                    var js = JSON.parse(data);
+                    var p = document.getElementById("p8");
+                    if (js.TanBing != "") {
+                        p.innerHTML = js.Dgz + "日: " + js.TanBing;
+                    }
+                }
+            })
+        }
+        //咸池 桃花
+        function xianchi() {
+            $.ajax({
+                type: "post",
+                url: "/jz60",
+                data: $('#formid').serialize(),
+                success: function (data) {
+                    var js = JSON.parse(data);
+                    var p = document.getElementById("p9");
+                    if (js.XianChi != "") {
+                        p.innerHTML = js.XianChi;
+                    }
+                }
+            })
+        }
+        //上朔日
+        function shangshuo() {
+            $.ajax({
+                type: "post",
+                url: "/jz60",
+                data: $('#formid').serialize(),
+                success: function (data) {
+                    var js = JSON.parse(data);
+                    var p = document.getElementById("p10");
+                    if (js.ShangShuo != "") {
+                        p.innerHTML = js.ShangShuo;
                     }
                 }
             })

@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -312,6 +311,9 @@ func main() {
 //年月日干支对应的数字
 type GZS struct {
 	Ygz, Mgz, Dgz, Hgz string
+	JC                 string //日建除
+	Dhh                string //黄黑神煞(日)
+	Hhh                string //黄黑神煞(时辰)
 	Tscy               string //太岁出游日
 	Tygr               string //太岁天乙贵人
 	TYDH               string //天乙贵人 日时论
@@ -322,6 +324,10 @@ type GZS struct {
 	GuGua              string //孤辰寡宿
 	WuLu               string //无禄日（十恶大败日）
 	ChongRi, FuRi      string //重日 复日
+	YiJu               string //移居吉日 含满成开日
+	TanBing            string //忌探病日
+	XianChi            string //咸池 桃花
+	ShangShuo          string //上朔日
 }
 
 //干支年月日下拉选择
@@ -369,9 +375,10 @@ func selectlist(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		ymc := gztoYmc(mgz)
+		ymc := gztoYmc(mgz) //月名称 正 二 三...十一 十二
 		fmt.Println(ygz, mgz, dgz, hgz, ymc)
 		//////
+		日建除, 日黄黑, 时辰黄黑 := jchh(ymc, mgz, dgz, hgz)
 		太岁出游 := ts.XJBF太岁出游(dgz, jz60)
 		阳贵人, 阴贵人 := ts.XJBF太岁天乙贵人(ygz)
 		天乙贵人 := ts.XJBF天乙贵人(dgz, hgz)
@@ -383,30 +390,52 @@ func selectlist(w http.ResponseWriter, r *http.Request) {
 		无禄 := ts.XJBF无禄日(dgz)
 		重日 := ts.XJBF重日(dgz)
 		复日 := ts.XJBF复日(ymc, dgz)
+		移居吉日 := ts.RSZL移居吉日(ymc, dgz)
+		忌探病日 := ts.RSZL忌探病日(dgz)
+		咸池 := ts.XCTH咸池桃花(ygz, mgz, dgz, hgz)
+		上朔日 := ts.XJBF上朔(ygz, dgz)
 
 		gzs := GZS{
-			Ygz:     ygz,
-			Mgz:     mgz,
-			Dgz:     dgz,
-			Hgz:     hgz,
-			Tscy:    太岁出游,
-			Tygr:    阳贵人 + " " + 阴贵人,
-			TYDH:    天乙贵人,
-			Luy:     岁禄,
-			Lum:     建禄,
-			Lud:     专禄,
-			Luh:     归禄,
-			GuGua:   孤辰 + " " + 寡宿,
-			WuLu:    无禄,
-			ChongRi: 重日,
-			FuRi:    复日,
+			Ygz:       ygz,
+			Mgz:       mgz,
+			Dgz:       dgz,
+			Hgz:       hgz,
+			JC:        日建除,
+			Dhh:       日黄黑,
+			Hhh:       时辰黄黑,
+			Tscy:      太岁出游,
+			Tygr:      阳贵人 + " " + 阴贵人,
+			TYDH:      天乙贵人,
+			Luy:       岁禄,
+			Lum:       建禄,
+			Lud:       专禄,
+			Luh:       归禄,
+			GuGua:     孤辰 + " " + 寡宿,
+			WuLu:      无禄,
+			ChongRi:   重日,
+			FuRi:      复日,
+			YiJu:      移居吉日,
+			TanBing:   忌探病日,
+			XianChi:   咸池,
+			ShangShuo: 上朔日,
 		}
-		js, err := json.Marshal(gzs)
-		if err != nil {
-			log.Fatal("js-err", err)
-		}
-		io.WriteString(w, string(js))
+		/* 		js, err := json.Marshal(gzs)
+		   		if err != nil {
+		   			log.Fatal("js-err", err)
+		   		}
+		   		io.WriteString(w, string(js)) */
+		json.NewEncoder(w).Encode(gzs)
 	}
+}
+
+//日建除
+func jchh(ymc, mgz, dgz, hgz string) (djc, dhh, hhh string) {
+	yjc := ts.JC本月建除(ymc)
+	djc = ts.JC本日建除(dgz, yjc) //日建除
+	zhimap := ts.MakeHHMap()
+	dhh = ts.XJBF黄黑起法(mgz, dgz, zhimap) //本日黄黑神煞
+	hhh = ts.XJBF黄黑起法(dgz, hgz, zhimap) //时辰黄黑神煞
+	return
 }
 
 //今日信息
@@ -627,6 +656,7 @@ func convYmc(n int) (alias string) {
 	return
 }
 
+//干支对应的月名称 正 二 三...十一 十二
 func gztoYmc(gz string) (ym string) {
 	ymc := []string{"正", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"}
 	zhi := []string{"寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥", "子", "丑"}

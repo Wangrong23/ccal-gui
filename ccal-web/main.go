@@ -59,11 +59,22 @@ type ZR struct {
 
 //协纪辩方书
 type XJBF struct {
-	NB string `json:"xjbfsNB"` //协纪辩方书 年表
-	YB string `json:"xjbfsYB"` //协纪辩方书 月表
-	RB string `json:"xjbfsRB"` //协纪辩方书 日表
-	BW string `json:"xjbfsBW"` //协纪辩方书 辩伪
-	RS string `json:"tsRSZL"`  //通书 日时总览
+	NB  []string `json:"xjbfsNB"`  //协纪辩方书 年表
+	Yjh []string `json:"xjbfsyjh"` //月总论 日建除 黄黑道
+	Rj  []string `json:"xjbfsrj"`  //月日论 日吉
+	Rx  []string `json:"xjbfsrx"`  //月日论 日凶
+	//RB  string   `json:"xjbfsRB"`  //协纪辩方书 日表
+	Hgx []string `json:"xjbfshgx"` //时辰黄黑 时辰孤 虚
+	Hcj []string `json:"xjbfshcj"` //日时论 时辰吉
+	Hcx []string `json:"xjbfshcx"` //日时论 时辰凶
+	BW  string   `json:"xjbfsBW"`  //协纪辩方书 辩伪
+}
+
+//通书内容
+type TSInfo struct {
+	TSRs []string `json:"trszl"` //通书 日时总览
+	TSsj string   `json:"tsj"`   //通书 择时要览时辰吉
+	TSsx string   `json:"tsx"`   //通书 择时要览时辰凶
 }
 
 //今日信息
@@ -99,8 +110,8 @@ type Resp struct {
 	StarInfo string   `json:"starInfo"`     //值宿信息
 	Zeji     string   `json:"zejiInfo"`     //当日择吉信息
 	XJBF              //协纪辩方书
-	//Today    string   `json:"todayInfo"` //阳历今日信息
-	YJ //月将信息
+	TSInfo            //通书内容
+	YJ                //月将信息
 }
 
 //宜忌
@@ -131,7 +142,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 			log.Fatalln(err)
 		}
 
-		fmt.Printf("农历: %d月\n", lm)
+		//fmt.Printf("农历: %d月\n", lm)
 		ld, err := strconv.Atoi(r.Form["ld"][0])
 		if err != nil {
 			log.Fatalln(err)
@@ -242,25 +253,40 @@ func home(w http.ResponseWriter, r *http.Request) {
 			hour:       l.LHour,
 			leapmonth:  l.LeapMonth,
 		}
-		yeartab := zr.YearTab()           //协纪辩方 年表
-		djc, jcb := zr.JCM()              //协纪辩方 建除十二神煞(日)
-		monthtab := zr.MonthTab(djc, jcb) //协纪辩方 月表
-		daytab := zr.DayTab()             //协纪辩方 日表
-		bianwei := zr.BianWei()           //协纪辩方 辩伪+其他
-		rszl := zr.RSZL()                 //通书日时总览
+		yeartab := zr.YearTab()              //协纪辩方 年表
+		djc, jcb := zr.JCM()                 //协纪辩方 建除十二神煞(日)
+		yjh, rj, rx := zr.MonthTab(djc, jcb) //协纪辩方 月表
+		hgx, hcj, hcx := zr.DayTab()         //协纪辩方 日表
+		bianwei := zr.BianWei()              //协纪辩方 辩伪+其他
 		xjbfs := XJBF{
 			NB: yeartab,
-			YB: monthtab,
-			RB: daytab,
-			BW: bianwei,
-			RS: rszl,
+			//YB: monthtab,
+			Yjh: yjh,
+			Rj:  rj,
+			Rx:  rx,
+			Hgx: hgx,
+			Hcj: hcj,
+			Hcx: hcx,
+			BW:  bianwei,
+			//RS:  rszl,
 		}
+		//fmt.Println("XJBF:", xjbfs)
+
+		///通书内容
+		rszl := zr.Rszl()     //通书日时总览
+		trj, trx := zr.Zsyl() //择时要览
+		tsinfo := TSInfo{
+			TSRs: rszl,
+			TSsj: trj,
+			TSsx: trx,
+		}
+		fmt.Println("通书:", rszl)
 		////月将
 		jqt := ts.JQT(ly)
 		solarT := time.Date(s.SYear, time.Month(s.SMonth), s.SDay, 0, 0, 0, 0, time.UTC)
 		yjs := ts.NEWZRYLYueJiang(solarT, jqt)
-		yjname := fmt.Sprintf("月将: %s", yjs.Name)
-		star := fmt.Sprintf("十二宫: %s", yjs.Star)
+		yjname := yjs.Name //月将名
+		star := yjs.Star   //十二宫星
 		yj := YJ{
 			YjName:   yjname,
 			StarName: star,
@@ -275,6 +301,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 			StarInfo: zhisus,
 			Zeji:     zeji,
 			XJBF:     xjbfs,
+			TSInfo:   tsinfo,
 			YJ:       yj,
 		}
 		json.NewEncoder(w).Encode(resp)
@@ -520,7 +547,7 @@ func todayccal() (infoToday string) {
 }
 
 //协纪辩方 年表
-func (xjbf *ZR) YearTab() string {
+func (xjbf *ZR) YearTab() []string {
 	dgz := xjbf.dgz
 	ygz := xjbf.aliasygz
 	mgz := xjbf.aliasmgz
@@ -533,8 +560,8 @@ func (xjbf *ZR) YearTab() string {
 		AliasYearZhi: yz,
 		AliasMonth:   aliasmonth,
 	}
-	yeartab := i.XJBF年表(jz60)
-	return yeartab
+
+	return i.XJBF年表(jz60)
 }
 
 //协纪辩方 建除(月日论)
@@ -549,7 +576,7 @@ func (xjbf *ZR) JCM() (string, bool) {
 }
 
 //协纪辩方 月表
-func (xjbf *ZR) MonthTab(djc string, jcb bool) string {
+func (xjbf *ZR) MonthTab(djc string, jcb bool) ([]string, []string, []string) {
 	ygz := xjbf.aliasygz
 	m := xjbf.aliasmonth
 	ly := xjbf.lyear
@@ -577,7 +604,7 @@ func (xjbf *ZR) MonthTab(djc string, jcb bool) string {
 }
 
 //协纪辩方 日表
-func (xjbf *ZR) DayTab() string {
+func (xjbf *ZR) DayTab() ([]string, []string, []string) {
 	dgz := xjbf.dgz
 	hgz := xjbf.hourgz
 	i = &ts.ZRYL{
@@ -604,17 +631,33 @@ func (xjbf *ZR) BianWei() string {
 	if taohua != "" {
 		th = taohua
 	}
-	return "<br />" + "孤辰寡宿 咸池桃花" + "<br />" +
-		guc + " " + gus + " " + th
+	return guc + " " + gus + " " + th
 }
 
 //通书 日时总览方法
-func (tos *ZR) RSZL() string {
+func (tos *ZR) Rszl() []string {
 	m := tos.aliasmonth
 	dgz := tos.dgz
 	rmc := tos.aliasday
-	aliasHour := tos.aliasHour
-	return ts.RSZLResult(m, dgz, rmc, aliasHour)
+	aHour := tos.aliasHour
+	i := &ts.ZRYL{
+		AliasMonth: m,
+		DGZ:        dgz,
+		AliasDay:   rmc,
+		AliasHour:  aHour,
+	}
+	return i.RSZL日时总览()
+}
+
+//通书择时要览
+func (tos *ZR) Zsyl() (tssj, tssx string) {
+	dgz := tos.dgz
+	hgz := tos.hourgz
+	i := &ts.ZRYL{
+		DGZ: dgz,
+		HGZ: hgz,
+	}
+	return i.ZSYL时辰吉凶()
 }
 
 //时辰地支

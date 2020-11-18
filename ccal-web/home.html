@@ -247,12 +247,25 @@
                 data: $('#form1').serialize(),
                 success: function (data) {
                     var p = document.getElementById("showInfo");
-                    p.innerHTML = data.xjbfsNB +
-                        "<br />" + data.yjName + "<br />" + data.starName +
-                        "<br />" + data.xjbfsYB +
-                        "<br />" + data.xjbfsRB +
-                        "<br />" + data.xjbfsBW +
-                        "<br />" + data.tsRSZL;
+                    p.innerHTML = "<br />" + "<b>" + "月总轮: " + "<br />" + "</b>" + data.xjbfsNB + "<br />" +//年表
+                        "<br />" + "<b>" + "月将: " + "</b>" + data.yjName + //月将
+                        "<br />" + "<b>" + "十二宫: " + "</b>" + data.starName + "<br>" +//十二宫
+                        "<br>" + "<b>" + "月总论: " + "</b>" + "<br>" + data.xjbfsyjh[0] +//月表-月总论
+                        "<br>" + "<b>" + "日黄黑: " + "</b>" + data.xjbfsyjh[2] +//黄黑
+                        "<br>" + "<b>" + "日建除: " + "</b>" + data.xjbfsyjh[1] + //日建除
+                        "<br>" + "<b>" + "日吉: " + "</b>" + data.xjbfsrj + //日吉
+                        "<br>" + "<b>" + "日凶: " + "</b>" + data.xjbfsrx + "<br>" + //日凶 //月表结束
+                        "<br />" + "<b>" + "时辰黄黑: " + "</b>" + data.xjbfshgx[0] +//黄黑
+                        "<br />" + "</b>" + data.xjbfshgx[1] +//时孤虚法
+                        "<br />" + "<b>" + "时孤: " + "</b>" + data.xjbfshgx[2] +
+                        "<br />" + "<b>" + "时虚: " + "</b>" + data.xjbfshgx[3] +
+                        "<br>" + "<b>" + "时辰吉: " + "</b>" + data.xjbfshcj +//时辰吉
+                        "<br>" + "<b>" + "时辰凶: " + "</b>" + data.xjbfshcx + "<br>" +//时辰凶 //日表 结束
+                        "<br />" + "<b>" + "孤辰寡宿 咸池桃花:" + "</b>" + "<br>" + data.xjbfsBW + "<br>" +
+                        //通书部分
+                        "<br />" + "<b>" + "通书日时总览: " + "</b>" + "<br>" + data.trszl + "<br>" +
+                        "<br />" + "<b>" + "通书时辰吉: " + "</b>" + data.tsj +
+                        "<br />" + "<b>" + "通书时辰凶: " + "</b>" + data.tsx;
                 },
                 error: function (data) {
                     alert("协纪辩方书异常!");
@@ -379,7 +392,7 @@
         setCookie("counter", visits, now)
         //var n = document.write("您是到访的第" + visits + "位用户！");
         var p = document.getElementById("rig");
-        p.innerHTML = "您是到访的第" + visits + "位用户！";
+        p.innerHTML = "你是第" + visits + "次访问此页面";
     </script>
 </body>
 

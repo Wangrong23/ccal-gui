@@ -7,6 +7,34 @@
     <!--     <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.5.1.min.js"></script> -->
     <script src="https://s3.pstatp.com/cdn/expire-1-M/jquery/3.2.1/jquery.min.js"></script>
     <title>CCAL</title>
+    <style>
+        .jncss{
+            position: absolute;
+            top: 500;
+            font-size: 120%;
+        }
+        .showjx {
+            position: absolute;
+            top: 120;
+            left: 420px;
+            width: 1100px;
+            font-size: 120%;
+        }
+
+        .jq24 {
+            position: absolute;
+            top: 120px;
+            left: 1520px;
+            font-size: 120%;
+        }
+
+        .ylb {
+            position: absolute;
+            top: 450px;
+            right: 1600px;
+            font-size: 120%;
+        }
+    </style>
 </head>
 
 <body>
@@ -147,11 +175,12 @@
     </div>
 
     <!-- 显示点击按钮对应的信息 纪年信息 地母经 小六壬择吉共用一个显示页面 -->
-    <p id="showInfo"></p>
+    <p class="jncss" id="jninfo"></p>
+    <p class="showjx" id="showInfo"></p>
     <!-- 月历表 单独显示 -->
-    <p id="DAY" style="text-align: left;"></p>
+    <p class="ylb" id="DAY"></p>
     <!-- 24节气 单独显示 -->
-    <p id="JQ" style="table-layout: auto;"></p>
+    <p class="jq24" id="JQ"></p>
 
     <script type="text/javascript">
         //提交表单数据到服务器
@@ -188,7 +217,7 @@
                 data: $('#form1').serialize(),
                 success: function (data) {
                     //console.log(data.jinianInfo)
-                    var p = document.getElementById("showInfo")
+                    var p = document.getElementById("jninfo")
                     p.innerHTML = data.jinianInfo;
                 },
                 error: function (data) {
@@ -289,11 +318,11 @@
                 success: function (data) {
                     var p = document.getElementById("JQ");
                     var jq = data.jqInfo
-                    p.innerHTML = jq[0] + jq[1] + jq[2] + jq[3] + jq[4] + jq[5] + '<br />' +
-                        jq[6] + jq[7] + jq[8] + jq[9] + jq[10] + jq[11] + '<br />' +
-                        jq[12] + jq[13] + jq[14] + jq[15] + jq[16] + jq[17] + '<br />' +
-                        jq[18] + jq[19] + jq[20] + jq[21] + jq[22] + '<br />' +
-                        jq[23] + jq[24] + jq[25] + jq[26] + '<br />'
+                    p.innerHTML = jq[0] + '<br>' + jq[1] + '<br>' + jq[2] + '<br>' + jq[3] + '<br>' + jq[4] + '<br>' + jq[5] + '<br>' +
+                        jq[6] + '<br>' + jq[7] + '<br>' + jq[8] + '<br>' + jq[9] + '<br>' + jq[10] + '<br>' + jq[11] + '<br>' +
+                        jq[12] + '<br>' + jq[13] + '<br>' + jq[14] + '<br>' + jq[15] + '<br>' + jq[16] + '<br>' + jq[17] + '<br>' +
+                        jq[18] + '<br>' + jq[19] + '<br>' + jq[20] + '<br>' + jq[21] + '<br>' + jq[22] + '<br>' +
+                        jq[23] + '<br>' + jq[24] + '<br>' + jq[25] + '<br>' + jq[26]
                 },
                 error: function (data) {
                     alert("24节气异常！");
@@ -309,7 +338,23 @@
                 data: $('#form1').serialize(),
                 success: function (data) {
                     var p = document.getElementById("DAY");
-                    p.innerHTML = data.listdayInfo;
+                    var ld = data.listdayInfo;
+                    //p.innerHTML = //data.listdayInfo;
+                    p.innerHTML = ld[0] + ld[1] + "<br>" +
+                        ld[2] + ld[3] + "<br>" +
+                        ld[4] + ld[5] + "<br>" +
+                        ld[6] + ld[7] + "<br>" +
+                        ld[8] + ld[9] + "<br>" +
+                        ld[10] + ld[11] + "<br>" +
+                        ld[12] + ld[13] + "<br>" +
+                        ld[14] + ld[15] + "<br>" +
+                        ld[16] + ld[17] + "<br>" +
+                        ld[18] + ld[19] + "<br>" +
+                        ld[20] + ld[21] + "<br>" +
+                        ld[22] + ld[23] + "<br>" +
+                        ld[24] + ld[25] + "<br>" +
+                        ld[26] + ld[27] + "<br>" +
+                        ld[28] + ld[29]
                 },
                 error: function (data) {
                     alert("月历表异常！");

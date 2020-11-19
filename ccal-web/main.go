@@ -18,6 +18,7 @@ import (
 	"github.com/Aquarian-Age/nongli/utils"
 	"github.com/Aquarian-Age/nongli/zeji"
 	ganzhi "github.com/Aquarian-Age/ts/gz"
+	"github.com/Aquarian-Age/ts/qimen"
 	ts "github.com/Aquarian-Age/ts/tongshu"
 )
 
@@ -338,26 +339,52 @@ func main() {
 //年月日干支对应的数字
 type GZS struct {
 	Ygz, Mgz, Dgz, Hgz string
-	JC                 string //日建除
-	Dhh                string //黄黑神煞(日)
-	Hhh                string //黄黑神煞(时辰)
-	Tscy               string //太岁出游日
-	Tygr               string //太岁天乙贵人
-	TYDH               string //天乙贵人 日时论
-	Luy                string //岁禄
-	Lum                string //建禄
-	Lud                string ///专禄(坐禄)
-	Luh                string //归禄
-	GuGua              string //孤辰寡宿
-	WuLu               string //无禄日（十恶大败日）
-	ChongRi, FuRi      string //重日 复日
-	YiJu               string //移居吉日 含满成开日
-	TanBing            string //忌探病日
-	XianChi            string //咸池 桃花
-	ShangShuo          string //上朔日
+	JC                 string   //日建除
+	Dhh                string   //黄黑神煞(日)
+	Hhh                string   //黄黑神煞(时辰)
+	Tscy               string   //太岁出游日
+	Tygr               string   //太岁天乙贵人
+	TYDH               string   //天乙贵人 日时论
+	Luy                string   //岁禄
+	Lum                string   //建禄
+	Lud                string   ///专禄(坐禄)
+	Luh                string   //归禄
+	GuGua              string   //孤辰寡宿
+	WuLu               string   //无禄日（十恶大败日）
+	ChongRi, FuRi      string   //重日 复日
+	YiJu               string   //移居吉日 含满成开日
+	TanBing            string   //忌探病日
+	XianChi            string   //咸池 桃花
+	ShangShuo          string   //上朔日
+	Wbu                string   //奇门五不遇
+	GuXu               []string //奇门时孤虚法
 }
 
-//干支年月日下拉选择
+/* //干支属性信息
+func newGan(gz string) *ganzhi.GAN {
+	g := []string{"甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"}
+	var gan string
+	for i := 0; i < len(g); i++ {
+		if strings.ContainsAny(gz, g[i]) {
+			gan = g[i]
+			break
+		}
+	}
+	return ganzhi.GZ天干(gan)
+}
+func newZhi(gz string) *ganzhi.ZHI {
+	z := []string{"子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"}
+	var zhi string
+	for i := 0; i < len(z); i++ {
+		if strings.ContainsAny(gz, z[i]) {
+			zhi = z[i]
+			break
+		}
+	}
+	return ganzhi.GZ地支(zhi)
+}
+*/
+//干支年月日查询
 func selectlist(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		t, err := template.ParseFiles("jz60.html")
@@ -403,7 +430,7 @@ func selectlist(w http.ResponseWriter, r *http.Request) {
 		}
 
 		ymc := gztoYmc(mgz) //月名称 正 二 三...十一 十二
-		fmt.Println(ygz, mgz, dgz, hgz, ymc)
+		//fmt.Println(ygz, mgz, dgz, hgz, ymc)
 		//////
 		日建除, 日黄黑, 时辰黄黑 := jchh(ymc, mgz, dgz, hgz)
 		太岁出游 := ts.XJBF太岁出游(dgz, jz60)
@@ -416,11 +443,28 @@ func selectlist(w http.ResponseWriter, r *http.Request) {
 		孤辰, 寡宿 := ts.XJBF孤辰寡宿(ygz, mgz, dgz, hgz)
 		无禄 := ts.XJBF无禄日(dgz)
 		重日 := ts.XJBF重日(dgz)
-		复日 := ts.XJBF复日(ymc, dgz)
+		复日 := ts.XJBF复日(mgz, dgz)
 		移居吉日 := ts.RSZL移居吉日(ymc, dgz)
 		忌探病日 := ts.RSZL忌探病日(dgz)
 		咸池 := ts.XCTH咸池桃花(ygz, mgz, dgz, hgz)
 		上朔日 := ts.XJBF上朔(ygz, dgz)
+		五不遇 := qimen.SJQM五不遇(dgz, hgz)
+		旬孤虚信息, 孤虚map := qimen.SJQM孤虚法(dgz, hgz)
+		var qmgx []string
+		qmgx = append(qmgx, 旬孤虚信息)
+		qmgx = append(qmgx, 孤虚map["孤"])
+		qmgx = append(qmgx, 孤虚map["虚"])
+		//方位
+		guzhi := 孤虚map["孤"]
+		xuzhi := 孤虚map["虚"]
+		fmt.Println(guzhi, xuzhi)
+		gzinfo := ganzhi.GZ地支(guzhi)
+		xzinfo := ganzhi.GZ地支(xuzhi)
+		gfx := gzinfo.FangXiang
+		xfx := xzinfo.FangXiang
+		fmt.Printf("背%s孤方向 击%s虚方向\n", gfx, xfx) //用法
+		qmgx = append(qmgx, gfx)
+		qmgx = append(qmgx, xfx)
 
 		gzs := GZS{
 			Ygz:       ygz,
@@ -445,12 +489,9 @@ func selectlist(w http.ResponseWriter, r *http.Request) {
 			TanBing:   忌探病日,
 			XianChi:   咸池,
 			ShangShuo: 上朔日,
+			Wbu:       五不遇,
+			GuXu:      qmgx,
 		}
-		/* 		js, err := json.Marshal(gzs)
-		   		if err != nil {
-		   			log.Fatal("js-err", err)
-		   		}
-		   		io.WriteString(w, string(js)) */
 		json.NewEncoder(w).Encode(gzs)
 	}
 }

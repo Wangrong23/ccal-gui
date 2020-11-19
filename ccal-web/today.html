@@ -6,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://s3.pstatp.com/cdn/expire-1-M/jquery/3.2.1/jquery.min.js"></script>
     <title>今日纪年信息</title>
+    <style>
+        body {
+            width: 800px;
+            margin: 0 auto;
+            font-size: 120%;
+        }
+    </style>
 </head>
 
 <body>
@@ -18,12 +25,11 @@
 
     <hr>
     <div style="text-align: center;">
-        <p id="page"></p>
-        <p id="selectP"></p>
+        <p id="p1"></p>
     </div>
     <hr>
     <!-- 关于 -->
-    <p id="show"></p>
+    <p id="p2"></p>
 
     <script>
         //阳历今日信息
@@ -35,7 +41,7 @@
                 data: $('#todayid').serialize(),
                 success: function (data) {
                     // console.log(typeof data.lu)
-                    var p = document.getElementById("page");
+                    var p = document.getElementById("p1");
                     p.innerHTML = data.todayInfo;
                 },
                 error: function () {
@@ -69,7 +75,7 @@
                 var ck = ps.Ck;
                 var me = ps.Me;
                 //写数据呈现到指定页面位置
-                var px = document.getElementById("show");
+                var px = document.getElementById("p2");
                 px.innerHTML = ccal + "<br />" + data + "<br />" + xlr + "<br />" + xjbf + "<br />" + ck + "<br />" + me;
             };
         }; 

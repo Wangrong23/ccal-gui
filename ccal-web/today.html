@@ -8,9 +8,9 @@
     <title>今日纪年信息</title>
     <style>
         body {
-            width: 800px;
+            width: 60rem;
             margin: 0 auto;
-            font-size: 120%;
+            font-size: 1.2rem;
         }
     </style>
 </head>
@@ -40,7 +40,7 @@
                 url: "/today",
                 data: $('#todayid').serialize(),
                 success: function (data) {
-                    // console.log(typeof data.lu)
+                    console.log(window.innerWidth);
                     var p = document.getElementById("p1");
                     p.innerHTML = data.todayInfo;
                 },

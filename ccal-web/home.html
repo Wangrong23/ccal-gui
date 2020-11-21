@@ -8,37 +8,37 @@
     <script src="https://s3.pstatp.com/cdn/expire-1-M/jquery/3.2.1/jquery.min.js"></script>
     <title>CCAL</title>
     <style>
-        .jncss{
+        .jncss {
             position: absolute;
             top: 500;
-            font-size: 120%;
+            font-size: 1.2rem;
         }
+
         .showjx {
             position: absolute;
             top: 120;
             left: 420px;
             width: 1100px;
-            font-size: 120%;
+            font-size: 1.2rem;
         }
 
         .jq24 {
             position: absolute;
-            top: 120px;
-            left: 1520px;
-            font-size: 120%;
+            top: 220px;
+            left: 1550px;
+            font-size: 1.2rem;
         }
 
         .ylb {
             position: absolute;
-            top: 450px;
-            right: 1600px;
-            font-size: 120%;
+            top: 550px;
+
+            font-size: 1.2rem;
         }
     </style>
 </head>
 
 <body>
-    <h3 style="text-align: center;">择日</h3>
     <div style="text-align: center;">
         <form action="/" style="text-align: center; height: 30px;" id="form1" method="POST" name="myform"
             onsubmit="return formonsub()">
@@ -250,8 +250,13 @@
                 url: "/", //url
                 data: $('#form1').serialize(),
                 success: function (data) {
+                   // console.log(window.innerWidth);
+                   // console.log(screen.width);
                     var p = document.getElementById("showInfo")
-                    p.innerHTML = data.starnameInfo + "<br />" + data.starInfo + "<br />" + data.zejiInfo
+                    p.innerHTML = "本日值宿" + "<br>" +//data.starnameInfo + "<br />" + 
+                        data.starInfo + "<br />" +
+                        data.zejiInfo + "<br>" +
+                        data.jigan + "<br>" + "本月吉日: " + data.goodjg
                 },
                 error: function (data) {
                     alert("择吉异常！");

@@ -22,7 +22,7 @@ import (
 )
 
 var (
-	T      = time.Now().Local()
+	T      = func() time.Time { return time.Now().Local() }
 	status = &duit.Label{Text: "计算时间范围:1601~3498\n使用方法:\n输入农历对应年份数字\n生肖可输入拼音\n闰月:y表示当月是闰月 n表示当月非闰月\n"}
 	Ly     = &duit.Field{} //年
 	Lm     = &duit.Field{} //月
@@ -247,7 +247,7 @@ func ymd(y, m, d, h int, sx string, inputb, mb bool) (Text string) {
 		} else {
 			aliasM = "否"
 		}
-		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-当前时间:%d:%d\n", s.SYear, s.SMonth, s.SDay, s.SWeek, T.Hour(), T.Minute())
+		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s\n", s.SYear, s.SMonth, s.SDay, s.SWeek)
 		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %s时(%d时)\n本年是否有闰月:%s 闰%d月\n",
 			l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1], l.LaliasHour, l.LHour, aliasM, l.LeapMonth)
 		gzinfo := fmt.Sprintf("干支纪年: %s%s年-%s月-%s%s日-%s时\n\n",
@@ -285,8 +285,8 @@ func aus(y, m, d, h int, sx string, inputb, mb bool) (Text string) {
 			aliasM = "否"
 		}
 		//纪年信息
-		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-当前时间 %d:%d\n",
-			s.SYear, s.SMonth, s.SDay, s.SWeek, T.Hour(), T.Minute())
+		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s\n",
+			s.SYear, s.SMonth, s.SDay, s.SWeek)
 		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %s时(%d时)\n本年是否有闰月: %s-->闰%d月\n",
 			l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1], l.LaliasHour, l.LHour, aliasM, l.LeapMonth)
 		gzinfo := fmt.Sprintf("干支纪年: %s%s年-%s月-%s%s日-%s时\n\n",
@@ -353,7 +353,7 @@ func day() (Text string) {
 	expectD := expectInfo.ExpectD
 	normalB := expectInfo.NormalB
 
-	h24 := T.Hour()
+	h24 := T().Hour()
 	h := utils.Conv24Hto12H(h24)
 	sx := "猴"
 
@@ -368,7 +368,7 @@ func day() (Text string) {
 			aliasM = "否"
 		}
 		//纪年信息
-		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-当前时间 %d:%d\n", s.SYear, s.SMonth, s.SDay, s.SWeek, T.Hour(), T.Minute())
+		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s\n", s.SYear, s.SMonth, s.SDay, s.SWeek)
 		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %s时(%d时)\n本年是否有闰月: %s-->闰%d月\n",
 			l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1], l.LaliasHour, l.LHour, aliasM, l.LeapMonth)
 		gzinfo := fmt.Sprintf("干支纪年: %s%s年-%s月-%s%s日-%s时\n\n",
@@ -420,7 +420,7 @@ func day() (Text string) {
 			aliasM = "否"
 		}
 		//纪年信息
-		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s-当前时间 %d:%d\n", s.SYear, s.SMonth, s.SDay, s.SWeek, T.Hour(), T.Minute())
+		solarinfo := fmt.Sprintf("阳历纪年: %d年-%d月-%d日-周%s\n", s.SYear, s.SMonth, s.SDay, s.SWeek)
 		lunarinfo := fmt.Sprintf("农历纪年: %d年%s月(%s)%s %s时(%d时)\n本年是否有闰月: %s-->闰%d月\n",
 			l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1], l.LaliasHour, l.LHour, aliasM, l.LeapMonth)
 		gzinfo := fmt.Sprintf("干支纪年: %s%s年-%s月-%s%s日-%s时\n\n",
@@ -507,7 +507,8 @@ func listDay(y, m, d, h int, sx string, inputb, mb bool) (Text string) {
 				n + days[21] + days[22] + days[23] + days[24] + days[2] + days[26] + days[27] + n +
 				n + days[28])
 
-		} else if x == 30 {
+		}
+		if x == 30 {
 			Text = (n + days[0] + days[1] + days[2] + days[3] + days[4] + days[5] + days[6] + n +
 				n + days[7] + days[8] + days[9] + days[10] + days[11] + days[12] + days[13] + n +
 				n + days[14] + days[15] + days[16] + days[17] + days[18] + days[19] + days[20] + n +

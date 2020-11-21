@@ -12,14 +12,15 @@ import (
 
 	"github.com/Aquarian-Age/nongli/ccal"
 	"github.com/Aquarian-Age/nongli/dimu"
+	"github.com/Aquarian-Age/nongli/ganzhi"
 	"github.com/Aquarian-Age/nongli/lunar"
 	"github.com/Aquarian-Age/nongli/solar"
 	"github.com/Aquarian-Age/nongli/today"
 	"github.com/Aquarian-Age/nongli/utils"
-	"github.com/Aquarian-Age/nongli/zeji"
-	ganzhi "github.com/Aquarian-Age/ts/gz"
+	xlr "github.com/Aquarian-Age/nongli/zeji"
 	"github.com/Aquarian-Age/ts/qimen"
 	ts "github.com/Aquarian-Age/ts/tongshu"
+	//gz "github.com/Aquarian-Age/ts/tongshu/gz"
 )
 
 var (
@@ -109,7 +110,9 @@ type Resp struct {
 	ListDay  []string `json:"listdayInfo"`  //农历月历表(农历初一开始)
 	StarName string   `json:"starnameInfo"` //当日值宿名称(28宿)
 	StarInfo string   `json:"starInfo"`     //值宿信息
-	Zeji     string   `json:"zejiInfo"`     //当日择吉信息
+	Zeji     string   `json:"zejiInfo"`     //择吉 本日星数字
+	JiGan    string   `json:"jigan"`        //择吉 本月吉干
+	JiRi     []string `json:"goodjg"`       //择吉 本月吉日数组
 	XJBF              //协纪辩方书
 	TSInfo            //通书内容
 	YJ                //月将信息
@@ -211,21 +214,40 @@ func home(w http.ResponseWriter, r *http.Request) {
 		jq24info := solar.ShowJieqi24(jq.Jqt, jq.Jq11t)
 
 		////////////////农历月历表
-		_, listday, _ := zeji.ListLunarDay(jq, l)
+		listday := lunar.ListLunarDay(jq.LunarmJd, l.LYdx)
 
 		///////////小六壬择吉
-		iqs := zeji.ZhiSu(s, g)
-		starName := iqs.StarNames        //值宿名称
-		zhisus := fmt.Sprintf(iqs.ZhiSu) //当日值宿信息
-		//fmt.Printf("二十八宿:\"%s\"\n %s\n", starName, zhisus)
-		//七煞判断
-		qsB := iqs.IsQiSha(s.SolarDayT, g.DayZhiM)
-		nx := zeji.AllNumber(g.YearZhi, l.LMonth, l.LDay, l.LHour)
-		n1b := nx.YiPan()
-		n2b := nx.ErPan()
-		n3b := nx.SanPan()
-		zeji := zeji.ShowResult(n1b, n2b, n3b, qsB)
-		//fmt.Printf("择吉结果: %s\n", zeji)
+		wd := int(s.SolarDayT.Weekday()) //周几
+		stars := xlr.NewStars(wd, dgz)
+		starName := stars.Name //值宿名称
+		zhisus := stars.Info   //当日值宿信息
+		//本日星数字
+		ygz := fmt.Sprintf("%s%s", g.YearGanM, g.YearZhiM)
+		m := l.LMonth
+		d := l.LDay
+		h := l.LHour
+		total := xlr.NewTotal(ygz, m, d, h)
+		b1 := total.YiPan()
+		b2 := total.ErPan()
+		b3 := total.SanPan()
+		zeji := stars.GoodNumberDay(b1, b2, b3)
+		//本月吉干信息
+		jg1, jg2, jg3 := xlr.JiGanNumber(m)
+		fmt.Printf("吉干数字:%d-%d-%d\n", jg1, jg2, jg3)
+		jgName := fmt.Sprintf("本月吉干:%s-%s-%s", ganzhi.Gan[jg1], ganzhi.Gan[jg2], ganzhi.Gan[jg3])
+
+		//没有去除七煞的吉干map
+		lunarmjd := jq.LunarmJd
+		ydx := l.LYdx
+		jgmap, qsarr := xlr.FindMonthJG(lunarmjd, m, ydx)
+		//fmt.Printf("吉干map:%v\n七煞maparr:%v\n", jgmap, qsarr)
+		//去除金神七煞的吉干map
+		newjgmap := xlr.DelQs(jgmap, qsarr)
+		//去除生肖相冲的吉干map
+		good := xlr.DelSX(newjgmap, sx)
+		//本月吉干数组
+		goodarr := xlr.GoodJG(good)
+		goodjg := goodarr
 
 		//择日 协纪辩方书
 		hgz := convHourZhi(g.HourGanZhiM)
@@ -260,8 +282,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 		hgx, hcj, hcx := zr.DayTab()         //协纪辩方 日表
 		bianwei := zr.BianWei()              //协纪辩方 辩伪+其他
 		xjbfs := XJBF{
-			NB: yeartab,
-			//YB: monthtab,
+			NB:  yeartab,
 			Yjh: yjh,
 			Rj:  rj,
 			Rx:  rx,
@@ -269,7 +290,6 @@ func home(w http.ResponseWriter, r *http.Request) {
 			Hcj: hcj,
 			Hcx: hcx,
 			BW:  bianwei,
-			//RS:  rszl,
 		}
 		//fmt.Println("XJBF:", xjbfs)
 
@@ -281,7 +301,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 			TSsj: trj,
 			TSsx: trx,
 		}
-		fmt.Println("通书:", rszl)
+		//fmt.Println("通书:", rszl)
 		////月将
 		jqt := ts.JQT(ly)
 		solarT := time.Date(s.SYear, time.Month(s.SMonth), s.SDay, 0, 0, 0, 0, time.UTC)
@@ -301,6 +321,8 @@ func home(w http.ResponseWriter, r *http.Request) {
 			StarName: starName,
 			StarInfo: zhisus,
 			Zeji:     zeji,
+			JiGan:    jgName,
+			JiRi:     goodjg,
 			XJBF:     xjbfs,
 			TSInfo:   tsinfo,
 			YJ:       yj,
@@ -360,30 +382,6 @@ type GZS struct {
 	GuXu               []string //奇门时孤虚法
 }
 
-/* //干支属性信息
-func newGan(gz string) *ganzhi.GAN {
-	g := []string{"甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"}
-	var gan string
-	for i := 0; i < len(g); i++ {
-		if strings.ContainsAny(gz, g[i]) {
-			gan = g[i]
-			break
-		}
-	}
-	return ganzhi.GZ天干(gan)
-}
-func newZhi(gz string) *ganzhi.ZHI {
-	z := []string{"子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"}
-	var zhi string
-	for i := 0; i < len(z); i++ {
-		if strings.ContainsAny(gz, z[i]) {
-			zhi = z[i]
-			break
-		}
-	}
-	return ganzhi.GZ地支(zhi)
-}
-*/
 //干支年月日查询
 func selectlist(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {

@@ -18,7 +18,7 @@ import (
 	"github.com/nongli/solar"
 	"github.com/nongli/today"
 	"github.com/nongli/utils"
-	"github.com/nongli/zeji"
+	xlr "github.com/nongli/zeji"
 )
 
 var (
@@ -231,11 +231,7 @@ func run() {
 func ymd(y, m, d, h int, sx string, inputb, mb bool) (Text string) {
 	switch inputb {
 	case true:
-		if sxt := shengxiao(sx); sxt == false {
-			//log.Fatal("生肖输入错误\n")
-			Text = fmt.Sprintf("生肖输入错误\n")
-		}
-
+		sx = shengxiao(sx)
 		err, s, l, g, _ := ccal.Input(y, m, d, h, sx, mb)
 		if err != nil {
 			//log.Fatal(err)
@@ -270,11 +266,7 @@ func ymd(y, m, d, h int, sx string, inputb, mb bool) (Text string) {
 func aus(y, m, d, h int, sx string, inputb, mb bool) (Text string) {
 	switch inputb {
 	case true:
-		if sxt := shengxiao(sx); sxt == false {
-			//log.Fatal("\"生肖\"输入错误，系統退出\n")
-			Text = fmt.Sprintf("\"生肖\"输入错误，系統退出\n")
-			os.Exit(0)
-		}
+		sx = shengxiao(sx)
 		err, s, l, g, jq := ccal.Input(y, m, d, h, sx, mb)
 		if err != nil {
 			log.Fatal(err)
@@ -293,40 +285,44 @@ func aus(y, m, d, h int, sx string, inputb, mb bool) (Text string) {
 			g.YearGanM, g.YearZhiM, g.MonthGanZhiM, g.DayGanM, g.DayZhiM, g.HourGanZhiM)
 
 		//值宿信息
-		iqs := zeji.ZhiSu(s, g)
-		ws := iqs.StarNames //值宿名称
-		wn := iqs.Week      //值宿当日周几　0为周日
+		dgz := fmt.Sprintf("%s%s", g.DayGanM, g.DayZhiM)
+		wd := int(s.SolarDayT.Weekday()) //周几
+		ygz := fmt.Sprintf("%s%s", g.YearGanM, g.YearZhiM)
+		m := l.LMonth
+		d := l.LDay
+		h := l.LHour
+		stars := xlr.NewStars(wd, dgz)
+		ws := stars.Name //值宿名称
+		wn := stars.Week //值宿当日周几　0为周日
+
 		winfo := fmt.Sprintf("周%s 值宿:\"%s\"\n", solar.Zhou[wn], ws)
-		zhisuInfo := fmt.Sprintf(iqs.ZhiSu) //当日值宿信息
+		info := stars.Info //当日值宿信息
+
+		total := xlr.NewTotal(ygz, m, d, h)
+		b1 := total.YiPan()
+		b2 := total.ErPan()
+		b3 := total.SanPan()
+		zeji := stars.GoodNumberDay(b1, b2, b3)
+
+		//本月吉干信息
+		jg1, jg2, jg3 := xlr.JiGanNumber(m)
+		name := fmt.Sprintf("本月吉干:%s-%s-%s", ganzhi.Gan[jg1], ganzhi.Gan[jg2], ganzhi.Gan[jg3])
 
 		//判断当日是否为七煞日
-		qsB := iqs.IsQiSha(s.SolarDayT, g.DayZhiM)
-		_, qsNumber, _ := zeji.QiShaInfo(int(s.SolarDayT.Weekday()), g.DayZhiM)
-		isQiSha := PrintQS(qsB, qsNumber)
-
-		//择吉数字
-		n1, n2, n3 := zeji.JiGan(l.LMonth)
-		number := fmt.Sprintf("\n农历本月吉干数字:%d %d %d-->", n1, n2, n3)
-		name := fmt.Sprintf("吉干:%s %s %s\n", ganzhi.Gan[n1], ganzhi.Gan[n2], ganzhi.Gan[n3])
 
 		//农历月份吉干
-		jg, _, aliasZhi := zeji.ListDay(jq, l, iqs)
-		jgs := zeji.ShowJiGan(jq.Sx, jg, aliasZhi)
-
-		//择吉结果
-		yearZhi := g.YearZhi
-		nx := zeji.AllNumber(yearZhi, m, d, h)
-		n1b := nx.YiPan()
-		n2b := nx.ErPan()
-		n3b := nx.SanPan()
-		result := zeji.ShowResult(n1b, n2b, n3b, qsB)
-
-		//月份吉干列表
-		listJg := fmt.Sprintf("本月吉干列表:\n%s\n", jgs)
-
+		lunarmjd := jq.LunarmJd
+		ydx := l.LYdx
+		jgmap, qsarr := xlr.FindMonthJG(lunarmjd, m, ydx)
+		//去除金神七煞的吉干map
+		newjgmap := xlr.DelQs(jgmap, qsarr)
+		//去除生肖相冲的吉干map
+		good := xlr.DelSX(newjgmap, sx)
+		//本月吉干数组
+		goodarr := xlr.GoodJG(good)
+		jg := fmt.Sprintln(goodarr)
 		//信息显示到UI界面
-		Text = (solarinfo + lunarinfo + gzinfo + winfo +
-			zhisuInfo + isQiSha + number + name + result + listJg)
+		Text = (solarinfo + lunarinfo + gzinfo + winfo + info + zeji + name + "\n本月吉日:" + jg)
 	case false:
 		Text = ("数字输入错误，系统退出\n")
 		os.Exit(0)
@@ -373,41 +369,46 @@ func day() (Text string) {
 			l.LYear, lunar.Ymc[l.LMonth-1], l.LYdxs, lunar.Rmc[l.LDay-1], l.LaliasHour, l.LHour, aliasM, l.LeapMonth)
 		gzinfo := fmt.Sprintf("干支纪年: %s%s年-%s月-%s%s日-%s时\n\n",
 			g.YearGanM, g.YearZhiM, g.MonthGanZhiM, g.DayGanM, g.DayZhiM, g.HourGanZhiM)
-
 		//值宿信息
-		iqs := zeji.ZhiSu(s, g)
-		ws := iqs.StarNames //值宿名称
-		wn := iqs.Week      //值宿当日周几　0为周日
+		dgz := fmt.Sprintf("%s%s", g.DayGanM, g.DayZhiM)
+		wd := int(s.SolarDayT.Weekday()) //周几
+		ygz := fmt.Sprintf("%s%s", g.YearGanM, g.YearZhiM)
+		m := l.LMonth
+		d := l.LDay
+		h := l.LHour
+		stars := xlr.NewStars(wd, dgz)
+		ws := stars.Name //值宿名称
+		wn := stars.Week //值宿当日周几　0为周日
+
 		winfo := fmt.Sprintf("周%s 值宿:\"%s\"\n", solar.Zhou[wn], ws)
-		zhisuInfo := fmt.Sprintf(iqs.ZhiSu) //当日值宿信息
+		info := stars.Info //当日值宿信息
+
+		total := xlr.NewTotal(ygz, m, d, h)
+		b1 := total.YiPan()
+		b2 := total.ErPan()
+		b3 := total.SanPan()
+		zeji := stars.GoodNumberDay(b1, b2, b3)
+
+		//本月吉干信息
+		jg1, jg2, jg3 := xlr.JiGanNumber(m)
+		//number := fmt.Sprintf("吉干数字:%d-%d-%d\n", jg1, jg2, jg3)
+		name := fmt.Sprintf("本月吉干:%s-%s-%s", ganzhi.Gan[jg1], ganzhi.Gan[jg2], ganzhi.Gan[jg3])
 
 		//判断当日是否为七煞日
-		qsB := iqs.IsQiSha(s.SolarDayT, g.DayZhiM)
-		_, qsNumber, _ := zeji.QiShaInfo(int(s.SolarDayT.Weekday()), g.DayZhiM)
-		isQiSha := PrintQS(qsB, qsNumber)
-
-		//择吉数字
-		n1, n2, n3 := zeji.JiGan(l.LMonth)
-		number := fmt.Sprintf("\n农历本月吉干数字:%d %d %d-->", n1, n2, n3)
-		name := fmt.Sprintf("吉干:%s %s %s\n", ganzhi.Gan[n1], ganzhi.Gan[n2], ganzhi.Gan[n3])
 
 		//农历月份吉干
-		jg, _, aliasZhi := zeji.ListDay(jq, l, iqs)
-		jgs := zeji.ShowJiGan(jq.Sx, jg, aliasZhi)
-
-		//择吉结果
-		yearZhi := g.YearZhi
-		nx := zeji.AllNumber(yearZhi, leapM, expectLeapD, h)
-		n1b := nx.YiPan()
-		n2b := nx.ErPan()
-		n3b := nx.SanPan()
-		result := zeji.ShowResult(n1b, n2b, n3b, qsB)
-
-		//月份吉干列表
-		listJg := fmt.Sprintf("本月吉干列表:\n%s\n", jgs)
-
+		lunarmjd := jq.LunarmJd
+		ydx := l.LYdx
+		jgmap, qsarr := xlr.FindMonthJG(lunarmjd, m, ydx)
+		//去除金神七煞的吉干map
+		newjgmap := xlr.DelQs(jgmap, qsarr)
+		//去除生肖相冲的吉干map
+		good := xlr.DelSX(newjgmap, sx)
+		//本月吉干数组
+		goodarr := xlr.GoodJG(good)
+		jg := fmt.Sprintln(goodarr)
 		//信息显示到UI界面
-		Text = (solarinfo + lunarinfo + gzinfo + winfo + zhisuInfo + isQiSha + number + name + result + listJg)
+		Text = (solarinfo + lunarinfo + gzinfo + winfo + info + zeji + name + "\n本月吉日:" + jg)
 
 	} else if normalM != 0 && normalB == false {
 		err, s, l, g, jq := ccal.Input(normalY, normalM, expectD, h, sx, normalB)
@@ -427,39 +428,45 @@ func day() (Text string) {
 			g.YearGanM, g.YearZhiM, g.MonthGanZhiM, g.DayGanM, g.DayZhiM, g.HourGanZhiM)
 
 		//值宿信息
-		iqs := zeji.ZhiSu(s, g)
-		ws := iqs.StarNames //值宿名称
-		wn := iqs.Week      //值宿当日周几　0为周日
+		dgz := fmt.Sprintf("%s%s", g.DayGanM, g.DayZhiM)
+		wd := int(s.SolarDayT.Weekday()) //周几
+		ygz := fmt.Sprintf("%s%s", g.YearGanM, g.YearZhiM)
+		m := l.LMonth
+		d := l.LDay
+		h := l.LHour
+		stars := xlr.NewStars(wd, dgz)
+		ws := stars.Name //值宿名称
+		wn := stars.Week //值宿当日周几　0为周日
+
 		winfo := fmt.Sprintf("周%s 值宿:\"%s\"\n", solar.Zhou[wn], ws)
-		zhisuInfo := fmt.Sprintf(iqs.ZhiSu) //当日值宿信息
+		info := stars.Info //当日值宿信息
+
+		total := xlr.NewTotal(ygz, m, d, h)
+		b1 := total.YiPan()
+		b2 := total.ErPan()
+		b3 := total.SanPan()
+		zeji := stars.GoodNumberDay(b1, b2, b3)
+
+		//本月吉干信息
+		jg1, jg2, jg3 := xlr.JiGanNumber(m)
+		//number := fmt.Sprintf("吉干数字:%d-%d-%d\n", jg1, jg2, jg3)
+		name := fmt.Sprintf("本月吉干:%s-%s-%s", ganzhi.Gan[jg1], ganzhi.Gan[jg2], ganzhi.Gan[jg3])
 
 		//判断当日是否为七煞日
-		qsB := iqs.IsQiSha(s.SolarDayT, g.DayZhiM)
-		_, qsNumber, _ := zeji.QiShaInfo(int(s.SolarDayT.Weekday()), g.DayZhiM)
-		isQiSha := PrintQS(qsB, qsNumber)
-
-		//择吉数字
-		n1, n2, n3 := zeji.JiGan(l.LMonth)
-		number := fmt.Sprintf("\n农历本月吉干数字:%d %d %d-->", n1, n2, n3)
-		name := fmt.Sprintf("吉干:%s %s %s\n", ganzhi.Gan[n1], ganzhi.Gan[n2], ganzhi.Gan[n3])
 
 		//农历月份吉干
-		jg, _, aliasZhi := zeji.ListDay(jq, l, iqs)
-		jgs := zeji.ShowJiGan(jq.Sx, jg, aliasZhi)
-
-		//择吉结果
-		yearZhi := g.YearZhi
-		nx := zeji.AllNumber(yearZhi, normalM, expectD, h)
-		n1b := nx.YiPan()
-		n2b := nx.ErPan()
-		n3b := nx.SanPan()
-		result := zeji.ShowResult(n1b, n2b, n3b, qsB)
-
-		//月份吉干列表
-		listJg := fmt.Sprintf("本月吉干日期:\n%s\n", jgs)
-
+		lunarmjd := jq.LunarmJd
+		ydx := l.LYdx
+		jgmap, qsarr := xlr.FindMonthJG(lunarmjd, m, ydx)
+		//去除金神七煞的吉干map
+		newjgmap := xlr.DelQs(jgmap, qsarr)
+		//去除生肖相冲的吉干map
+		good := xlr.DelSX(newjgmap, sx)
+		//本月吉干数组
+		goodarr := xlr.GoodJG(good)
+		jg := fmt.Sprintln(goodarr)
 		//信息显示到UI界面
-		Text = (solarinfo + lunarinfo + gzinfo + winfo + zhisuInfo + isQiSha + number + name + result + listJg)
+		Text = (solarinfo + lunarinfo + gzinfo + winfo + info + zeji + name + "\n本月吉日:" + jg)
 	}
 	return
 }
@@ -474,7 +481,6 @@ func j24(y, m, d, h int, inputb bool) (Text string) {
 			log.Fatal(err)
 		}
 		jq24 := solar.ShowJieqi24(jq.Jqt, jq.Jq11t)
-		//n := fmt.Sprintf("\n")
 		//信息显示到UI界面
 		Text = (jq24[0] + jq24[1] + jq24[2] + jq24[3] + jq24[4] + jq24[5] +
 			jq24[6] + jq24[7] + jq24[8] + jq24[9] + jq24[10] + jq24[11] +
@@ -491,13 +497,14 @@ func j24(y, m, d, h int, inputb bool) (Text string) {
 func listDay(y, m, d, h int, sx string, inputb, mb bool) (Text string) {
 	switch inputb {
 	case true:
-		err, s, l, g, jq := ccal.Input(y, m, d, h, sx, mb)
+		err, _, l, _, jq := ccal.Input(y, m, d, h, sx, mb)
 		if err != nil {
-			//log.Fatal(err)
 			Text = fmt.Sprintf("%v\n", err)
 		}
-		iqs := zeji.ZhiSu(s, g)
-		x, days, _ := zeji.ListLunarDay(jq, l, iqs)
+		lunarmjd := jq.LunarmJd
+		ydx := l.LYdx
+		days := lunar.ListLunarDay(lunarmjd, ydx)
+		x := len(days)
 
 		n := fmt.Sprintf("\n") //自动换行
 		if x == 29 {
@@ -564,92 +571,50 @@ func leapBool(leapm string) (lt bool, err error) {
 
 	if leapm != "yes" && leapm != "y" &&
 		leapm != "no" && leapm != "n" {
-		err = errors.New("闰月判断值输入错误软件自动关闭...")
-	}
-	return
-}
-
-//打印当时是否为七煞日
-func PrintQS(qsb bool, qsn int) (info string) {
-
-	if qsb == true {
-		info = QiSha(qsn)
-	}
-	return
-}
-
-//显示七煞
-func QiSha(wn int) (s string) {
-	if wn == 0 ||
-		wn == 1 ||
-		wn == 8 ||
-		wn == 14 ||
-		wn == 22 ||
-		wn == 23 ||
-		wn == 24 {
-		s = fmt.Sprintf("\n\"%s\"为七煞之一\n", zeji.XingSu28[wn])
+		err = errors.New("闰月判断值输入错误")
 	}
 	return
 }
 
 //生肖判断　可以输入生肖的拼音或者汉字支持繁体
-func shengxiao(s string) (t bool) {
+func shengxiao(s string) (sxname string) {
 	lows := strings.ToLower(s) //转为小写
 
-	aliasshu, aliasniu, aliashu, aliastu, aliaslong, aliasshe = "鼠", "牛", "虎", "兔", "龙", "蛇"
-	aliasma, aliasyang, aliashou, aliasji, aliasgou, aliaszhu = "马", "羊", "猴", "鸡", "狗", "猪"
-	aliaslongf, aliasmaf, aliasjif, aliaszhuf = "龍", "馬", "雞", "豬"
-
-	//简体部分
-	shub := strings.EqualFold(s, aliasshu)
-	niub := strings.EqualFold(s, aliasniu)
-	hub := strings.EqualFold(s, aliashu)
-	tub := strings.EqualFold(s, aliastu)
-	longb := strings.EqualFold(s, aliaslong)
-	sheb := strings.EqualFold(s, aliasshe)
-	mab := strings.EqualFold(s, aliasma)
-	yangb := strings.EqualFold(s, aliasyang)
-	houb := strings.EqualFold(s, aliashou)
-	jib := strings.EqualFold(s, aliasji)
-	goub := strings.EqualFold(s, aliasgou)
-	zhub := strings.EqualFold(s, aliaszhu)
-
-	//繁體部分
-	longfb := strings.EqualFold(s, aliaslongf)
-	mafb := strings.EqualFold(s, aliasmaf)
-	jifb := strings.EqualFold(s, aliasjif)
-	zhufb := strings.EqualFold(s, aliaszhuf)
-
-	//拼音部分
-	shuB := strings.EqualFold(lows, "shu")
-	niuB := strings.EqualFold(lows, "niu")
-	huB := strings.EqualFold(lows, "hu")
-	tuB := strings.EqualFold(lows, "tu")
-	longB := strings.EqualFold(lows, "long")
-	sheB := strings.EqualFold(lows, "she")
-	maB := strings.EqualFold(lows, "ma")
-	yangB := strings.EqualFold(lows, "yang")
-	houB := strings.EqualFold(lows, "hou")
-	jiB := strings.EqualFold(lows, "ji")
-	gouB := strings.EqualFold(lows, "gou")
-	zhuB := strings.EqualFold(lows, "zhu")
-
-	if (shub == false && shuB == false) &&
-		(niub == false && niuB == false) &&
-		(hub == false && huB == false) &&
-		(tub == false && tuB == false) &&
-		(longb == false && longB == false && longfb == false) &&
-		(sheb == false && sheB == false) &&
-		(mab == false && maB == false && mafb == false) &&
-		(yangb == false && yangB == false) &&
-		(houb == false && houB == false) &&
-		(jib == false && jiB == false && jifb == false) &&
-		(goub == false && gouB == false) &&
-		(zhub == false && zhuB == false && zhufb == false) {
-
-		t = false
-	} else {
-		t = true
+	if strings.EqualFold(s, "鼠") || strings.EqualFold(lows, "shu") {
+		sxname = "鼠"
+	}
+	if strings.EqualFold(s, "牛") || strings.EqualFold(lows, "niu") {
+		sxname = "牛"
+	}
+	if strings.EqualFold(s, "虎") || strings.EqualFold(lows, "hu") {
+		sxname = "虎"
+	}
+	if strings.EqualFold(s, "兔") || strings.EqualFold(lows, "tu") {
+		sxname = "兔"
+	}
+	if strings.EqualFold(s, "龙") || strings.EqualFold(lows, "long") || strings.EqualFold(s, "龍") {
+		sxname = "龙"
+	}
+	if strings.EqualFold(s, "蛇") || strings.EqualFold(lows, "she") {
+		sxname = "蛇"
+	}
+	if strings.EqualFold(s, "马") || strings.EqualFold(lows, "ma") || strings.EqualFold(s, "馬") {
+		sxname = "马"
+	}
+	if strings.EqualFold(s, "羊") || strings.EqualFold(lows, "yang") {
+		sxname = "羊"
+	}
+	if strings.EqualFold(s, "猴") || strings.EqualFold(lows, "hou") {
+		sxname = "猴"
+	}
+	if strings.EqualFold(s, "鸡") || strings.EqualFold(lows, "ji") || strings.EqualFold(s, "雞") {
+		sxname = "鸡"
+	}
+	if strings.EqualFold(s, "狗") || strings.EqualFold(lows, "gou") {
+		sxname = "狗"
+	}
+	if strings.EqualFold(s, "猪") || strings.EqualFold(lows, "zhu") || strings.EqualFold(s, "豬") {
+		sxname = "猪"
 	}
 	return
 }
@@ -698,3 +663,27 @@ func yg13(m, d int) (info string) {
 	}
 	return
 }
+
+/*
+//打印当时是否为七煞日
+func PrintQS(qsb bool, qsn int) (info string) {
+
+	if qsb == true {
+		info = QiSha(qsn)
+	}
+	return
+}
+*/
+/* //显示七煞
+func QiSha(wn int) (s string) {
+	if wn == 0 ||
+		wn == 1 ||
+		wn == 8 ||
+		wn == 14 ||
+		wn == 22 ||
+		wn == 23 ||
+		wn == 24 {
+		s = fmt.Sprintf("\n\"%s\"为七煞之一\n", zeji.XingSu28[wn])
+	}
+	return
+} */
